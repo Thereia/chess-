@@ -1,13 +1,13 @@
 # Project Short Card
 
 ## Current Task
-Choose execution approach for first-version implementation.
+Start inline execution for first-version implementation.
 
 ## Immediate Actions
-1. User reviews `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`.
-2. User chooses subagent-driven execution or inline execution.
-3. Start Task 1 only after execution approach is chosen.
+1. Start from Task 1 in `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`.
+2. Use inline execution in the current session.
+3. Follow TDD for implementation tasks.
 
 ## Completion Criteria
-- Execution approach is chosen.
-- Implementation begins from Task 1 in the plan.
+- Task 1 runtime configuration is implemented and verified.
+- Commit Task 1 before moving to Task 2.
