@@ -246,7 +246,9 @@ Before implementation, complete design in this order:
 - Implementation plan exists at `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`.
 - User chose inline execution for implementation.
 - Task 1 runtime configuration is complete and verified on Spring Boot 3.4.3.
-- Current active task is Task 2: core coordinate and piece model.
+- Task 2 core coordinate and piece model is complete and verified.
+- Task 2 files may still be uncommitted depending on whether the user has committed after this handoff.
+- Current active task is Task 3: board initialization and helpers.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first, then read `docs/PROJECT_LONG_CARD.md`.
@@ -258,7 +260,7 @@ Current status:
 - API design is complete enough to use as the implementation reference.
 - Rule design is approved. Implementation plan has been written. User chose inline execution.
 - Do not start coding yet.
-- Next task is Task 2 from the implementation plan: `Position`, `ChessColor`, `PieceType`, and `Piece`.
+- Next task is Task 3 from the implementation plan: `Board.initial()`, board lookup/update helpers, and path counting.
 
 Important approved API compatibility notes:
 
@@ -303,6 +305,9 @@ Important approved API compatibility notes:
 - Exact package and file list is recorded in `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`, not duplicated in this long card.
 - Downgraded Spring Boot project setup from 4.1.0 to 3.4.3-compatible dependencies because local Maven cache/environment successfully verifies that version.
 - Task 1 added `server.port=8887` and `chess.records.dir=records`; `ChessApplicationTests` passed with 1 test, 0 failures, 0 errors.
+- Task 2 added `Position`, `ChessColor`, `PieceType`, `Piece`, plus `PositionTest` and `PieceTest`.
+- Task 2 tests passed with `mvn -q "-Dtest=PositionTest,PieceTest" test` when run through a temporary `subst X:` path, because Java/Maven classpath resolution fails under the project path containing `!`.
+- Recommended project-location fix: rename or move the root directory to a path without `!`, such as `C:\Users\Asus\Downloads\jieqi`, before continuing heavier Maven testing.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.
@@ -320,6 +325,7 @@ Important approved API compatibility notes:
 - Ignoring the public interface and losing interoperability.
 - Treating same-computer play as pure single-page local play instead of two clients through server.
 - Mixing coordinate systems incorrectly.
+- Keeping the project under a path containing `!`, which can break Java/Maven test compilation classpath resolution on Windows.
 - Revealing hidden captured piece types to the wrong receiver.
 - Implementing hidden-piece movement incorrectly: first move uses original-square identity, later moves use revealed identity.
 - Letting WebSocket handler absorb all business logic instead of keeping game rules in domain/rule classes.
