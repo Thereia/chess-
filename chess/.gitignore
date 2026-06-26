@@ -31,3 +31,22 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local runtime data ###
+logs/
+*.log
+records/
+game-records/
+replays/
+tmp/
+temp/
+
+### Local environment ###
+.env
+.env.*
+!.env.example
+
+### OS files ###
+.DS_Store
+Thumbs.db
+desktop.ini

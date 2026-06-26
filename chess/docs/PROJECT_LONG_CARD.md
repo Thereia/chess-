@@ -241,7 +241,9 @@ Before implementation, complete design in this order:
 - No implementation is considered started for purposes of this long card.
 - `docs/API_DESIGN.md` is approved as the first official API design.
 - `docs/API_DESIGN_CN.md` is the Chinese review guide for the approved API design.
-- `docs/RULE_DESIGN.md` has been drafted and is awaiting user review before implementation design.
+- `docs/RULE_DESIGN.md` and `docs/RULE_DESIGN_CN.md` are approved for first-version implementation scope.
+- Implementation plan exists at `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`.
+- Current active task is choosing execution approach before coding.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first, then read `docs/PROJECT_LONG_CARD.md`.
@@ -251,9 +253,9 @@ Current status:
 - Assignment requirements and source documents have been reviewed.
 - Minimal project direction has been agreed: Spring Boot server, browser clients, WebSocket JSON, server-authoritative game state, local file records, no database/Redis/login in first version.
 - API design is complete enough to use as the implementation reference.
-- Rule design has been drafted in `docs/RULE_DESIGN.md`; review/approval is the next gate.
+- Rule design is approved. Implementation plan has been written and is awaiting execution approach choice.
 - Do not start coding yet.
-- Next task is confirming rule design before implementation design.
+- Next task is choosing subagent-driven execution or inline execution, then starting Task 1 from the plan.
 
 Important approved API compatibility notes:
 
@@ -286,10 +288,14 @@ Important approved API compatibility notes:
 - Approved `docs/API_DESIGN.md` as the first official API design for the minimal version, with only the accepted compatibility extensions recorded below.
 - Updated inner `chess/AGENTS.md` so new sessions read both short and long project cards.
 - Drafted `docs/RULE_DESIGN.md` for the minimal first-version rule scope.
+- Added `docs/RULE_DESIGN_CN.md` as the Chinese review version for the user.
 - Rule design draft confirms protocol coordinates `a-i` and `0-9`, with internal mapping `row = 9 - y`, `col = x - 'a'`.
 - Rule design draft records first-version movement rules, hidden-piece first-move/reveal behavior, flip pool, validation order, timeout, no-capture draw, and local move-record data.
 - Rule design draft intentionally postpones long check, long chase, draw offer, and full checkmate/stalemate search.
 - Rule design draft clarifies that ordinary self-exposure is not rejected in the first version; the opponent may capture the King/General to win. Facing Kings/Generals directly remains illegal.
+- User approved the rule design decisions, including first-version scope, ordinary self-exposure behavior, hidden capture reveal, Guard/Bishop strengthening, and 80-ply no-capture draw.
+- Wrote implementation plan `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`.
+- Plan order is: runtime config, coordinate/piece model, board, flip pool, rule validation, move execution, recorder, protocol DTOs, WebSocket rooms, static client, end-to-end verification.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.
@@ -298,8 +304,7 @@ Important approved API compatibility notes:
 - Exact hidden captured piece payload difference between capturing side and captured side using `capturedPiece`.
 - Whether `Ready` is functionally required or simply accepted-but-not-required during implementation.
 - Whether successful `moveResult` should always include `nextTurn` or leave it as ignorable convenience data.
-- User final approval of `docs/RULE_DESIGN.md`.
-- Exact package architecture after API/rule design.
+- Execution approach for implementation.
 - Exact domain class fields and responsibilities.
 - Exact client UI representation.
 - Exact game-record file format.

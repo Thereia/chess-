@@ -1,14 +1,13 @@
 # Project Short Card
 
 ## Current Task
-Review and confirm `docs/RULE_DESIGN.md` before implementation design.
+Choose execution approach for first-version implementation.
 
 ## Immediate Actions
-1. User reviews `docs/RULE_DESIGN.md`.
-2. Adjust rule scope if any rule is wrong or too complex.
-3. After approval, start implementation design.
+1. User reviews `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`.
+2. User chooses subagent-driven execution or inline execution.
+3. Start Task 1 only after execution approach is chosen.
 
 ## Completion Criteria
-- User approves `docs/RULE_DESIGN.md`.
-- Long card records final rule design approval.
-- Next short-card task becomes implementation design.
+- Execution approach is chosen.
+- Implementation begins from Task 1 in the plan.
