@@ -245,7 +245,8 @@ Before implementation, complete design in this order:
 - `docs/RULE_DESIGN.md` and `docs/RULE_DESIGN_CN.md` are approved for first-version implementation scope.
 - Implementation plan exists at `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`.
 - User chose inline execution for implementation.
-- Current active task is starting Task 1 from the implementation plan.
+- Task 1 runtime configuration is complete and verified on Spring Boot 3.4.3.
+- Current active task is Task 2: core coordinate and piece model.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first, then read `docs/PROJECT_LONG_CARD.md`.
@@ -257,7 +258,7 @@ Current status:
 - API design is complete enough to use as the implementation reference.
 - Rule design is approved. Implementation plan has been written. User chose inline execution.
 - Do not start coding yet.
-- Next task is starting Task 1 from the implementation plan.
+- Next task is Task 2 from the implementation plan: `Position`, `ChessColor`, `PieceType`, and `Piece`.
 
 Important approved API compatibility notes:
 
@@ -300,6 +301,8 @@ Important approved API compatibility notes:
 - Plan order is: runtime config, coordinate/piece model, board, flip pool, rule validation, move execution, recorder, protocol DTOs, WebSocket rooms, static client, end-to-end verification.
 - Implementation architecture summary: build pure Java game/rule core first with unit tests, then protocol DTOs, then WebSocket room flow, then static browser client. Keep WebSocket handling thin; domain/rule classes own game behavior.
 - Exact package and file list is recorded in `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`, not duplicated in this long card.
+- Downgraded Spring Boot project setup from 4.1.0 to 3.4.3-compatible dependencies because local Maven cache/environment successfully verifies that version.
+- Task 1 added `server.port=8887` and `chess.records.dir=records`; `ChessApplicationTests` passed with 1 test, 0 failures, 0 errors.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.

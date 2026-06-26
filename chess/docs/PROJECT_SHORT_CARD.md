@@ -1,13 +1,13 @@
 # Project Short Card
 
 ## Current Task
-Start inline execution for first-version implementation.
+Start Task 2: core coordinate and piece model.
 
 ## Immediate Actions
-1. Start from Task 1 in `docs/superpowers/plans/2026-06-26-jieqi-first-version.md`.
-2. Use inline execution in the current session.
-3. Follow TDD for implementation tasks.
+1. Write failing tests for `Position` and `Piece`.
+2. Implement `Position`, `ChessColor`, `PieceType`, and `Piece`.
+3. Run focused tests and commit Task 2.
 
 ## Completion Criteria
-- Task 1 runtime configuration is implemented and verified.
-- Commit Task 1 before moving to Task 2.
+- `PositionTest` and `PieceTest` pass.
+- Task 2 is committed before moving to board initialization.
