@@ -248,7 +248,7 @@ Before implementation, complete design in this order:
 - Task 1 runtime configuration is complete and verified on Spring Boot 3.4.3.
 - Task 2 core coordinate and piece model is complete and verified.
 - Task 2 files may still be uncommitted depending on whether the user has committed after this handoff.
-- Current active task is Task 5: review and commit `RuleEngine` move validation.
+- Current active task is Task 6: review and commit `MoveExecutor` accepted-move application.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first. Read `docs/PROJECT_LONG_CARD.md` only if the short card is empty, stale, unclear, contradictory, complete, or the user asks for broader background.
@@ -260,7 +260,7 @@ Current status:
 - API design is complete enough to use as the implementation reference.
 - Rule design is approved. Implementation plan has been written. User chose inline execution.
 - Do not start coding yet.
-- Next task is Task 5 from the implementation plan: implement `RuleEngine` move validation.
+- Next task is Task 6 from the implementation plan: implement `MoveExecutor` accepted-move application.
 
 Important approved API compatibility notes:
 
@@ -326,6 +326,11 @@ Important approved API compatibility notes:
 - Task 5 implemented `RuleEngine.validate` with server-side mover-color checks, source/destination validation, own-piece capture rejection, per-piece movement validation, blockers, hidden-vs-revealed Guard/Bishop restrictions, and facing-Kings rejection.
 - Task 5 added `RuleEngineTest` for basic invalid moves, Rook, Cannon, Knight, Pawn, King, Guard, Bishop, and facing-Kings behavior.
 - Task 5 focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest,RuleEngineTest" test` when run through a temporary `subst X:` path.
+- Task 5 was committed in `7a96bbc` with message `完成走子规则`.
+- Task 6 design decision: `MoveExecutor` should execute moves already accepted by `RuleEngine`; it should not repeat move legality validation. `GameRoom` will call `RuleEngine` first and only call `MoveExecutor` for accepted moves.
+- Task 6 implemented `MoveExecutor.apply` for accepted moves: board movement, moved hidden-piece reveal from mover pool, hidden captured-piece reveal from captured side pool, visible captures, turn switch, move number, no-capture counter, and `MoveRecord`.
+- Task 6 added `MoveExecutorTest` for visible movement, hidden moved-piece reveal, hidden target capture, and visible target capture.
+- Task 6 focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest,RuleEngineTest,MoveExecutorTest" test` when run through a temporary `subst X:` path.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.

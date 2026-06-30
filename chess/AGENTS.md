@@ -49,3 +49,6 @@ Prefer simple implementation that satisfies the teacher's requirements over unne
 - Use normal JavaBean accessors such as `getId()`, `getX()`, and `isVisible()` consistently.
 - Lombok `@Getter` is acceptable to reduce getter boilerplate. Avoid fluent accessors, `@Data`, and broad `@Setter`; add setters only when mutability is truly needed.
 - Avoid enterprise-style defensive validation for internal model constructors. Keep validation where it directly represents game rules or protects board coordinates/protocol boundaries.
+- Do not default to immutable-object patterns, defensive encapsulation, or extra helper methods when a simple field update would be clearer for this assignment.
+- Do not justify added complexity with network-attack, malicious-client, or bypass-call scenarios unless the user explicitly asks for that level of robustness. Keep server authority for normal game correctness, but do not overbuild.
+- Prefer direct, beginner-readable state changes for domain objects when they match the agreed model. Add small methods only when they clearly simplify call sites or express a real game rule.

@@ -1,7 +1,7 @@
 # Project Short Card
 
 ## Current Task
-Finish Task 5: review and commit `RuleEngine`.
+Finish Task 6: review and commit `MoveExecutor`.
 
 ## Current State
 - Task 2 code and tests are written and verified.
@@ -14,13 +14,14 @@ Finish Task 5: review and commit `RuleEngine`.
 - Keep internal model validation lightweight; preserve coordinate/rule validation but avoid enterprise-style null checks.
 - Task 3 `Board` code and tests are committed in `97ab08e`.
 - Task 4 `FlipPool` code and tests are committed in `71d7b9f`.
-- Task 5 `RuleEngine` code and tests are implemented and verified.
+- Task 5 `RuleEngine` code and tests are committed in `7a96bbc`.
+- Task 6 `MoveExecutor` code and tests are implemented and verified.
 
 ## Immediate Actions
-1. Review Task 5 diff.
-2. Commit `RuleEngine` and `RuleEngineTest`.
-3. Start Task 6: `MoveExecutor` accepted-move application.
+1. Review Task 6 diff.
+2. Commit `MoveExecutor` and `MoveExecutorTest`.
+3. Start Task 7: game result checking / move record integration as planned.
 
 ## Completion Criteria
-- `RuleEngineTest` passes with existing core tests.
-- Task 5 is committed before moving to move execution.
+- `MoveExecutorTest` passes with existing core tests.
+- Task 6 is committed before moving to result/record flow.
