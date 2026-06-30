@@ -10,25 +10,25 @@ class PositionTest {
     @Test
     void convertsProtocolCoordinateToArrayIndex() {
         Position redKing = Position.of("e", 0);
-        assertThat(redKing.row()).isEqualTo(9);
-        assertThat(redKing.col()).isEqualTo(4);
-        assertThat(redKing.x()).isEqualTo("e");
-        assertThat(redKing.y()).isEqualTo(0);
+        assertThat(redKing.getRow()).isEqualTo(9);
+        assertThat(redKing.getCol()).isEqualTo(4);
+        assertThat(redKing.getX()).isEqualTo("e");
+        assertThat(redKing.getY()).isEqualTo(0);
 
         Position blackKing = Position.of("e", 9);
-        assertThat(blackKing.row()).isEqualTo(0);
-        assertThat(blackKing.col()).isEqualTo(4);
+        assertThat(blackKing.getRow()).isEqualTo(0);
+        assertThat(blackKing.getCol()).isEqualTo(4);
     }
 
     @Test
     void convertsArrayIndexToProtocolCoordinate() {
         Position redKing = Position.fromArrayIndex(9, 4);
-        assertThat(redKing.x()).isEqualTo("e");
-        assertThat(redKing.y()).isEqualTo(0);
+        assertThat(redKing.getX()).isEqualTo("e");
+        assertThat(redKing.getY()).isEqualTo(0);
 
         Position blackKing = Position.fromArrayIndex(0, 4);
-        assertThat(blackKing.x()).isEqualTo("e");
-        assertThat(blackKing.y()).isEqualTo(9);
+        assertThat(blackKing.getX()).isEqualTo("e");
+        assertThat(blackKing.getY()).isEqualTo(9);
     }
 
     @Test

@@ -111,7 +111,7 @@ The implementation should keep game rules out of the WebSocket handler. The expe
 | `Position` | Immutable board coordinate, parse/format/validate `x,y`. |
 | `PieceColor` | `RED` or `BLACK`; provides opponent lookup and forward direction. |
 | `PieceType` | `KING`, `ROOK`, `KNIGHT`, `CANNON`, `PAWN`, `GUARD`, `BISHOP`. |
-| `Piece` | Color, original type, optional revealed type, visibility, unique id. |
+| `Piece` | Color, original type, optional revealed type, unique id. Visibility is derived from whether revealed type is present. |
 | `Board` | 10 by 9 cells, piece lookup, move application, path/blocker helpers. |
 | `Move` | Source, destination, mover id/color, server receive time, client `isFlip` hint. |
 | `MoveValidationResult` | Legal/illegal result, error code, message, capture/reveal metadata. |

@@ -1,0 +1,64 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f4f1;
+    color: #202020;
+}
+
+.app {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.toolbar input {
+    flex: 1;
+    min-width: 220px;
+}
+
+.toolbar button,
+.cell {
+    border: 1px solid #555;
+    background: #fff;
+    color: #202020;
+}
+
+.status {
+    min-height: 24px;
+    margin-bottom: 12px;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(40px, 1fr));
+    gap: 4px;
+    max-width: 620px;
+}
+
+.cell {
+    aspect-ratio: 1;
+    font-size: 14px;
+}
+
+.cell.selected {
+    outline: 3px solid #c6402f;
+}
+
+.log {
+    margin-top: 16px;
+    min-height: 120px;
+    padding: 8px;
+    border: 1px solid #bbb;
+    background: #fff;
+    overflow-wrap: anywhere;
+}

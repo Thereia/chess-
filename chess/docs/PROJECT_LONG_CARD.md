@@ -307,7 +307,7 @@ Important approved API compatibility notes:
 - Task 1 added `server.port=8887` and `chess.records.dir=records`; `ChessApplicationTests` passed with 1 test, 0 failures, 0 errors.
 - Task 2 added `Position`, `ChessColor`, `PieceType`, `Piece`, plus `PositionTest` and `PieceTest`.
 - Task 2 tests passed with `mvn -q "-Dtest=PositionTest,PieceTest" test` when run through a temporary `subst X:` path, because Java/Maven classpath resolution fails under the project path containing `!`.
-- Recommended project-location fix: rename or move the root directory to a path without `!`, such as `C:\Users\Asus\Downloads\jieqi`, before continuing heavier Maven testing.
+- Project-location fix completed: outer root is now `C:\Users\Asus\Downloads\chess-work`, removing the previous Java/Maven classpath issue caused by `!` in the path.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.

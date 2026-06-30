@@ -111,7 +111,7 @@ x = (char) ('a' + col)
 - `originalType`：原始位置类型，用于暗子第一次移动前的走法判断。
 - `revealedType`：揭示后的真实类型，用于之后的走法判断。
 
-暗子第一次走之前，用 `originalType` 判断。揭示之后，用 `revealedType` 判断。
+暗子第一次走之前，用 `originalType` 判断。揭示之后，用 `revealedType` 判断。是否明子由 `revealedType` 是否存在推导，不单独保存布尔字段。
 
 ## 6. 领域对象建议
 

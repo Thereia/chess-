@@ -1,9 +1,19 @@
 package thereia.java.chess.board;
 
-public record Position(String x, int y) {
+import lombok.Getter;
 
-    public Position {
+import java.util.Objects;
+
+@Getter
+public final class Position {
+
+    private final String x;
+    private final int y;
+
+    private Position(String x, int y) {
         validateProtocolCoordinate(x, y);
+        this.x = x;
+        this.y = y;
     }
 
     public static Position of(String x, int y) {
@@ -20,20 +30,20 @@ public record Position(String x, int y) {
         return new Position(String.valueOf((char) ('a' + col)), 9 - row);
     }
 
-    public int row() {
+    public int getRow() {
         return 9 - y;
     }
 
-    public int col() {
+    public int getCol() {
         return x.charAt(0) - 'a';
     }
 
     public int deltaX(Position other) {
-        return other.col() - col();
+        return other.getCol() - getCol();
     }
 
     public int deltaY(Position other) {
-        return other.y() - y;
+        return other.getY() - y;
     }
 
     private static void validateProtocolCoordinate(String x, int y) {
@@ -47,5 +57,26 @@ public record Position(String x, int y) {
         if (y < 0 || y > 9) {
             throw new IllegalArgumentException("y must be between 0 and 9");
         }
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Position position)) {
+            return false;
+        }
+        return y == position.y && Objects.equals(x, position.x);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
+    }
+
+    @Override
+    public String toString() {
+        return x + y;
     }
 }

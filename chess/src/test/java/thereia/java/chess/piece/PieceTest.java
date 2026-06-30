@@ -10,23 +10,23 @@ class PieceTest {
     @Test
     void hiddenPieceUsesOriginalTypeUntilRevealed() {
         Piece piece = Piece.hidden("r-a0", ChessColor.RED, PieceType.ROOK);
-        assertThat(piece.visible()).isFalse();
-        assertThat(piece.movementType()).isEqualTo(PieceType.ROOK);
+        assertThat(piece.isVisible()).isFalse();
+        assertThat(piece.getMovementType()).isEqualTo(PieceType.ROOK);
 
         Piece revealed = piece.reveal(PieceType.PAWN);
-        assertThat(revealed.visible()).isTrue();
-        assertThat(revealed.revealedType()).contains(PieceType.PAWN);
-        assertThat(revealed.movementType()).isEqualTo(PieceType.PAWN);
+        assertThat(revealed.isVisible()).isTrue();
+        assertThat(revealed.getRevealedTypeOptional()).contains(PieceType.PAWN);
+        assertThat(revealed.getMovementType()).isEqualTo(PieceType.PAWN);
     }
 
     @Test
     void visiblePieceUsesItsVisibleType() {
         Piece piece = Piece.visible("r-e0", ChessColor.RED, PieceType.KING);
 
-        assertThat(piece.visible()).isTrue();
-        assertThat(piece.originalType()).isEqualTo(PieceType.KING);
-        assertThat(piece.revealedType()).contains(PieceType.KING);
-        assertThat(piece.movementType()).isEqualTo(PieceType.KING);
+        assertThat(piece.isVisible()).isTrue();
+        assertThat(piece.getOriginalType()).isEqualTo(PieceType.KING);
+        assertThat(piece.getRevealedTypeOptional()).contains(PieceType.KING);
+        assertThat(piece.getMovementType()).isEqualTo(PieceType.KING);
     }
 
     @Test

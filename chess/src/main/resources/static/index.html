@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jieqi</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="app">
+    <section class="toolbar">
+        <input id="wsUrl" value="ws://localhost:8887" aria-label="WebSocket URL">
+        <button id="connectButton" type="button">Connect</button>
+        <button id="startButton" type="button">Start Match</button>
+        <button id="resignButton" type="button">Resign</button>
+    </section>
+    <section class="status" id="status">Disconnected</section>
+    <section class="board" id="board" aria-label="board"></section>
+    <section class="log" id="log" aria-label="move log"></section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

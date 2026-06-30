@@ -1,56 +1,68 @@
 package thereia.java.chess.piece;
 
+import lombok.Getter;
+
+import java.util.Objects;
 import java.util.Optional;
 
-public record Piece(
-        String id,
-        ChessColor color,
-        PieceType originalType,
-        PieceType actualRevealedType,
-        boolean visible
-) {
+@Getter
+public final class Piece {
 
-    public Piece {
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("id must not be blank");
-        }
-        if (color == null) {
-            throw new IllegalArgumentException("color must not be null");
-        }
-        if (originalType == null) {
-            throw new IllegalArgumentException("originalType must not be null");
-        }
-        if (visible && actualRevealedType == null) {
-            throw new IllegalArgumentException("visible piece must have revealed type");
-        }
-        if (!visible && actualRevealedType != null) {
-            throw new IllegalArgumentException("hidden piece must not have revealed type");
-        }
+    private final String id;
+    private final ChessColor color;
+    private final PieceType originalType;
+    private final PieceType revealedType;
+
+    private Piece(String id, ChessColor color, PieceType originalType, PieceType revealedType) {
+        this.id = id;
+        this.color = color;
+        this.originalType = originalType;
+        this.revealedType = revealedType;
     }
 
     public static Piece visible(String id, ChessColor color, PieceType type) {
-        return new Piece(id, color, type, type, true);
+        return new Piece(id, color, type, type);
     }
 
     public static Piece hidden(String id, ChessColor color, PieceType originalType) {
-        return new Piece(id, color, originalType, null, false);
+        return new Piece(id, color, originalType, null);
     }
 
-    public PieceType movementType() {
-        return visible ? actualRevealedType : originalType;
+    public boolean isVisible() {
+        return revealedType != null;
     }
 
-    public Optional<PieceType> revealedType() {
-        return Optional.ofNullable(actualRevealedType);
+    public PieceType getMovementType() {
+        return isVisible() ? revealedType : originalType;
+    }
+
+    public Optional<PieceType> getRevealedTypeOptional() {
+        return Optional.ofNullable(revealedType);
     }
 
     public Piece reveal(PieceType type) {
-        if (visible) {
+        if (isVisible()) {
             throw new IllegalStateException("piece is already visible");
         }
-        if (type == null) {
-            throw new IllegalArgumentException("revealed type must not be null");
+        return new Piece(id, color, originalType, type);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
         }
-        return new Piece(id, color, originalType, type, true);
+        if (!(object instanceof Piece piece)) {
+            return false;
+        }
+        return Objects.equals(id, piece.id)
+                && color == piece.color
+                && originalType == piece.originalType
+                && revealedType == piece.revealedType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, color, originalType, revealedType);
     }
 }
