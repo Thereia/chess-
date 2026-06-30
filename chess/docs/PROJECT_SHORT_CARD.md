@@ -1,7 +1,7 @@
 # Project Short Card
 
 ## Current Task
-Finish Task 3: commit board initialization and helpers.
+Finish Task 4: review and commit `FlipPool`.
 
 ## Current State
 - Task 2 code and tests are written and verified.
@@ -12,13 +12,14 @@ Finish Task 3: commit board initialization and helpers.
 - Lombok dependency has been added; use `@Getter` to reduce boilerplate, not `@Data`. Use normal JavaBean accessors consistently.
 - `Piece.isVisible()` is derived from whether `revealedType` is present; no separate internal visible boolean.
 - Keep internal model validation lightweight; preserve coordinate/rule validation but avoid enterprise-style null checks.
-- Task 3 code and tests are implemented and verified.
+- Task 3 `Board` code and tests are committed in `97ab08e`.
+- Task 4 `FlipPool` code and tests are implemented and verified.
 
 ## Immediate Actions
-1. Review Task 3 diff.
-2. Commit `Board` and `BoardTest`.
-3. Start Task 4: `FlipPool`.
+1. Review Task 4 diff.
+2. Commit `FlipPool` and `FlipPoolTest`.
+3. Start Task 5: `RuleEngine` move validation.
 
 ## Completion Criteria
-- `BoardTest` passes.
-- Task 3 is committed before moving to flip pool.
+- `FlipPoolTest` passes with existing core tests.
+- Task 4 is committed before moving to rule validation.

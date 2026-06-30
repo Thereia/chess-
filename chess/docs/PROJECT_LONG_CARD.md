@@ -248,7 +248,7 @@ Before implementation, complete design in this order:
 - Task 1 runtime configuration is complete and verified on Spring Boot 3.4.3.
 - Task 2 core coordinate and piece model is complete and verified.
 - Task 2 files may still be uncommitted depending on whether the user has committed after this handoff.
-- Current active task is Task 3: board initialization and helpers.
+- Current active task is Task 4: review and commit flip pool.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first. Read `docs/PROJECT_LONG_CARD.md` only if the short card is empty, stale, unclear, contradictory, complete, or the user asks for broader background.
@@ -260,7 +260,7 @@ Current status:
 - API design is complete enough to use as the implementation reference.
 - Rule design is approved. Implementation plan has been written. User chose inline execution.
 - Do not start coding yet.
-- Next task is Task 3 from the implementation plan: `Board.initial()`, board lookup/update helpers, and path counting.
+- Next task is Task 5 from the implementation plan: implement `RuleEngine` move validation.
 
 Important approved API compatibility notes:
 
@@ -318,6 +318,10 @@ Important approved API compatibility notes:
 - Task 3 implemented `Board.initial()`, `Board.empty()`, `pieceAt`, `isEmpty`, `occupiedCount`, copy-on-write `put`/`remove`/`move`, and `countBetween`.
 - Task 3 added `BoardTest` for initial Jieqi setup, copy-on-write helpers, and same-rank/file path counting.
 - Task 3 focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest" test` when run through a temporary `subst X:` path.
+- Task 3 was committed in `97ab08e` with message `完成Board`.
+- Task 4 implemented `FlipPool` with one-side 15-piece reveal pool, shuffled initialization, draw-and-remove behavior, remaining count/type queries, and empty-pool failure.
+- Task 4 added `FlipPoolTest` for initial type distribution, draw removal, immutable remaining type snapshots, and empty-pool behavior.
+- Task 4 focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest" test` when run through a temporary `subst X:` path.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.
