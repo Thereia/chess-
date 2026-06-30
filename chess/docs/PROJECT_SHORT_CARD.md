@@ -1,7 +1,7 @@
 # Project Short Card
 
 ## Current Task
-Finish Task 6: review and commit `MoveExecutor`.
+Handoff for new session: review and commit current Task 6 changes, then start Task 7.
 
 ## Current State
 - Task 2 code and tests are written and verified.
@@ -15,13 +15,20 @@ Finish Task 6: review and commit `MoveExecutor`.
 - Task 3 `Board` code and tests are committed in `97ab08e`.
 - Task 4 `FlipPool` code and tests are committed in `71d7b9f`.
 - Task 5 `RuleEngine` code and tests are committed in `7a96bbc`.
-- Task 6 `MoveExecutor` code and tests are implemented and verified.
+- Task 6 `MoveExecutor` code and tests are implemented and verified, but not yet committed in this handoff.
+- `MoveExecutor.apply` executes already-validated moves only. `GameRoom` should call `RuleEngine` first, then call `MoveExecutor` only for accepted moves.
+- `MoveRecord` has been simplified to operation plus reveal/capture facts: move number, color, from/to, flip result, captured piece, server time, and end reason.
+- Keep only local game records required by the assignment; do not add extra history APIs or UI.
+- Project docs were adjusted to remove history-playback feature wording while preserving local game-record requirements.
+- Current uncommitted work should include docs plus `MoveRecord`, `MoveExecutor`, `MoveExecutorTest`, and `MoveRecordTest`.
+- Last focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest,RuleEngineTest,MoveExecutorTest,MoveRecordTest" test` via the temporary `subst X:` path workaround.
 
 ## Immediate Actions
-1. Review Task 6 diff.
-2. Commit `MoveExecutor` and `MoveExecutorTest`.
-3. Start Task 7: game result checking / move record integration as planned.
+1. Run `git status --short` and review the uncommitted Task 6/doc diff.
+2. Commit Task 6 and related doc/card updates if the diff looks right.
+3. Start Task 7: game result / local record file flow, keeping the WebSocket handler thin.
 
 ## Completion Criteria
-- `MoveExecutorTest` passes with existing core tests.
-- Task 6 is committed before moving to result/record flow.
+- Task 6 implementation and tests are committed.
+- No history-playback API/UI work is introduced; only local game records remain in scope.
+- Next session can continue from Task 7 without rereading the long card unless short card seems stale.

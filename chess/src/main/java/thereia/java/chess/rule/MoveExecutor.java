@@ -22,7 +22,6 @@ public final class MoveExecutor {
         Board board = state.getBoard();
         Piece movedPiece = board.pieceAt(from).orElseThrow();
         Piece targetPiece = board.pieceAt(to).orElse(null);
-        PieceType movementType = movedPiece.getMovementType();
 
         PieceType capturedPiece = capturedPiece(targetPiece, state);
         PieceType flipResult = null;
@@ -41,8 +40,8 @@ public final class MoveExecutor {
         GameState nextState = new GameState(nextBoard, moverColor.opponent(), state.getStatus(), state.getRedPool(),
                 state.getBlackPool(), nextNoCapturePlyCount, nextMoveNumber, state.getTurnStartedAt(),
                 state.getTurnDeadlineAt(), state.getWinnerColor(), state.getEndReason());
-        MoveRecord record = new MoveRecord(nextMoveNumber, moverColor, from, to, movementType, flipResult,
-                capturedPiece, now, nextNoCapturePlyCount, state.getEndReason());
+        MoveRecord record = new MoveRecord(nextMoveNumber, moverColor, from, to, flipResult, capturedPiece, now,
+                state.getEndReason());
 
         return new MoveExecution(true, MoveValidationResult.ok(), nextState, record, flipResult, capturedPiece);
     }

@@ -40,7 +40,7 @@ The implementation should be as simple as possible while satisfying the teacher'
 - Server and client should be interoperable with other groups as much as practical.
 - Client and server must exchange JSON data.
 - Server and client must be able to reject illegal moves.
-- Server should record game moves for replay/record purposes.
+- Server should record game moves as local game records.
 - Use server-side timing as authoritative; client timestamps cannot be trusted.
 - Final report must include team member division of labor and contribution percentages.
 
@@ -239,7 +239,7 @@ Before implementation, complete design in this order:
 - Root workspace also contains assignment documents.
 - Memory workflow rules exist in root `AGENTS.md` and inner `chess/AGENTS.md`.
 - Planning docs exist under `chess/docs/`.
-- No implementation is considered started for purposes of this long card.
+- Implementation has started and core game-rule modules are being built incrementally.
 - `docs/API_DESIGN.md` is approved as the first official API design.
 - `docs/API_DESIGN_CN.md` is the Chinese review guide for the approved API design.
 - `docs/RULE_DESIGN.md` and `docs/RULE_DESIGN_CN.md` are approved for first-version implementation scope.
@@ -247,8 +247,8 @@ Before implementation, complete design in this order:
 - User chose inline execution for implementation.
 - Task 1 runtime configuration is complete and verified on Spring Boot 3.4.3.
 - Task 2 core coordinate and piece model is complete and verified.
-- Task 2 files may still be uncommitted depending on whether the user has committed after this handoff.
-- Current active task is Task 6: review and commit `MoveExecutor` accepted-move application.
+- Task 2 through Task 5 have been implemented, verified, and committed.
+- Current active task is to review and commit the uncommitted Task 6 `MoveExecutor` / `MoveRecord` changes, then start Task 7.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first. Read `docs/PROJECT_LONG_CARD.md` only if the short card is empty, stale, unclear, contradictory, complete, or the user asks for broader background.
@@ -259,8 +259,8 @@ Current status:
 - Minimal project direction has been agreed: Spring Boot server, browser clients, WebSocket JSON, server-authoritative game state, local file records, no database/Redis/login in first version.
 - API design is complete enough to use as the implementation reference.
 - Rule design is approved. Implementation plan has been written. User chose inline execution.
-- Do not start coding yet.
-- Next task is Task 6 from the implementation plan: implement `MoveExecutor` accepted-move application.
+- Task 6 implementation is complete but should be reviewed and committed before starting Task 7.
+- Next task after committing is Task 7: game result / local record file flow.
 
 Important approved API compatibility notes:
 
@@ -331,6 +331,9 @@ Important approved API compatibility notes:
 - Task 6 implemented `MoveExecutor.apply` for accepted moves: board movement, moved hidden-piece reveal from mover pool, hidden captured-piece reveal from captured side pool, visible captures, turn switch, move number, no-capture counter, and `MoveRecord`.
 - Task 6 added `MoveExecutorTest` for visible movement, hidden moved-piece reveal, hidden target capture, and visible target capture.
 - Task 6 focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest,RuleEngineTest,MoveExecutorTest" test` when run through a temporary `subst X:` path.
+- Simplified `MoveRecord` to lightweight local move record data: move number, color, from/to, flip result, captured piece, server time, and end reason. Removed movement type and no-capture counter from the record because they can be derived when inspecting records or debugging.
+- Verified the simplified `MoveRecord` together with Task 6 using `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest,RuleEngineTest,MoveExecutorTest,MoveRecordTest" test` through the temporary `subst X:` path.
+- Removed project-doc wording that implied building a history-playback feature. Keep only local game records required by the assignment; do not add extra history APIs or UI.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.

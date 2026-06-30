@@ -47,8 +47,8 @@ class MoveExecutorTest {
         assertThat(record.getColor()).isEqualTo(ChessColor.RED);
         assertThat(record.getFrom()).isEqualTo(pos("a", 0));
         assertThat(record.getTo()).isEqualTo(pos("a", 3));
-        assertThat(record.getMovementType()).isEqualTo(PieceType.ROOK);
-        assertThat(record.getNoCapturePlyCountAfterMove()).isEqualTo(4);
+        assertThat(record.getFlipResult()).isNull();
+        assertThat(record.getCapturedPiece()).isNull();
     }
 
     @Test

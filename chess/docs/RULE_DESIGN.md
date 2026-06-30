@@ -23,7 +23,7 @@ Implemented in the first version:
 - Resign ends the game.
 - Server-side per-turn timeout ends the game.
 - 40 full rounds without capture, meaning 80 plies without capture, is a draw.
-- Local move record data sufficient for replay/debugging.
+- Local move record data sufficient for game records and debugging.
 
 Reserved for later:
 
