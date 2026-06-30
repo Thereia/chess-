@@ -1,7 +1,7 @@
 # Project Short Card
 
 ## Current Task
-Start Task 3: board initialization and helpers.
+Finish Task 3: commit board initialization and helpers.
 
 ## Current State
 - Task 2 code and tests are written and verified.
@@ -12,11 +12,12 @@ Start Task 3: board initialization and helpers.
 - Lombok dependency has been added; use `@Getter` to reduce boilerplate, not `@Data`. Use normal JavaBean accessors consistently.
 - `Piece.isVisible()` is derived from whether `revealedType` is present; no separate internal visible boolean.
 - Keep internal model validation lightweight; preserve coordinate/rule validation but avoid enterprise-style null checks.
+- Task 3 code and tests are implemented and verified.
 
 ## Immediate Actions
-1. Write failing tests for initial Jieqi board setup.
-2. Implement `Board.initial()`, `Board.empty()`, lookup, put/remove/move, and path counting.
-3. Run focused board tests and commit Task 3.
+1. Review Task 3 diff.
+2. Commit `Board` and `BoardTest`.
+3. Start Task 4: `FlipPool`.
 
 ## Completion Criteria
 - `BoardTest` passes.

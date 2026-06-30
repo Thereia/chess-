@@ -251,7 +251,7 @@ Before implementation, complete design in this order:
 - Current active task is Task 3: board initialization and helpers.
 
 ## New Session Handoff
-When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first, then read `docs/PROJECT_LONG_CARD.md`.
+When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first. Read `docs/PROJECT_LONG_CARD.md` only if the short card is empty, stale, unclear, contradictory, complete, or the user asks for broader background.
 
 Current status:
 
@@ -270,6 +270,13 @@ Important approved API compatibility notes:
 - `gameStart.initialBoard` includes occupied initial squares. `color` is an accepted convenience field.
 - `moveResult.capturedPiece` is an accepted project extension because the public interface is incomplete about captured hidden-piece visibility.
 - External `gameOver.reason` stays compatible with public values: use `checkmate` or `resign`; timeout uses the separate `timeout` message.
+
+## Code Style Decisions
+- Use ordinary Java classes instead of Java `record` declarations for readability.
+- Lombok is allowed for reducing boilerplate, mainly `@Getter`.
+- Do not use `@Data`; avoid broad `@Setter`. Add setters only when mutability is truly needed.
+- Use normal JavaBean accessors consistently, such as `getId()` and `isVisible()`.
+- Keep internal model validation lightweight; preserve validation for coordinates, protocol boundaries, and real game-rule invariants.
 
 ## Completed Discussion
 - Compared this project with a larger Spring Boot travel backend and concluded this project should not copy a heavy CRUD architecture.
@@ -308,6 +315,9 @@ Important approved API compatibility notes:
 - Task 2 added `Position`, `ChessColor`, `PieceType`, `Piece`, plus `PositionTest` and `PieceTest`.
 - Task 2 tests passed with `mvn -q "-Dtest=PositionTest,PieceTest" test` when run through a temporary `subst X:` path, because Java/Maven classpath resolution fails under the project path containing `!`.
 - Project-location fix completed: outer root is now `C:\Users\Asus\Downloads\chess-work`, removing the previous Java/Maven classpath issue caused by `!` in the path.
+- Task 3 implemented `Board.initial()`, `Board.empty()`, `pieceAt`, `isEmpty`, `occupiedCount`, copy-on-write `put`/`remove`/`move`, and `countBetween`.
+- Task 3 added `BoardTest` for initial Jieqi setup, copy-on-write helpers, and same-rank/file path counting.
+- Task 3 focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest" test` when run through a temporary `subst X:` path.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.
