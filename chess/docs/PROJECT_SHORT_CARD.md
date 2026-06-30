@@ -1,7 +1,7 @@
 # Project Short Card
 
 ## Current Task
-Finish Task 4: review and commit `FlipPool`.
+Finish Task 5: review and commit `RuleEngine`.
 
 ## Current State
 - Task 2 code and tests are written and verified.
@@ -13,13 +13,14 @@ Finish Task 4: review and commit `FlipPool`.
 - `Piece.isVisible()` is derived from whether `revealedType` is present; no separate internal visible boolean.
 - Keep internal model validation lightweight; preserve coordinate/rule validation but avoid enterprise-style null checks.
 - Task 3 `Board` code and tests are committed in `97ab08e`.
-- Task 4 `FlipPool` code and tests are implemented and verified.
+- Task 4 `FlipPool` code and tests are committed in `71d7b9f`.
+- Task 5 `RuleEngine` code and tests are implemented and verified.
 
 ## Immediate Actions
-1. Review Task 4 diff.
-2. Commit `FlipPool` and `FlipPoolTest`.
-3. Start Task 5: `RuleEngine` move validation.
+1. Review Task 5 diff.
+2. Commit `RuleEngine` and `RuleEngineTest`.
+3. Start Task 6: `MoveExecutor` accepted-move application.
 
 ## Completion Criteria
-- `FlipPoolTest` passes with existing core tests.
-- Task 4 is committed before moving to rule validation.
+- `RuleEngineTest` passes with existing core tests.
+- Task 5 is committed before moving to move execution.

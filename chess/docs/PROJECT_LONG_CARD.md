@@ -248,7 +248,7 @@ Before implementation, complete design in this order:
 - Task 1 runtime configuration is complete and verified on Spring Boot 3.4.3.
 - Task 2 core coordinate and piece model is complete and verified.
 - Task 2 files may still be uncommitted depending on whether the user has committed after this handoff.
-- Current active task is Task 4: review and commit flip pool.
+- Current active task is Task 5: review and commit `RuleEngine` move validation.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first. Read `docs/PROJECT_LONG_CARD.md` only if the short card is empty, stale, unclear, contradictory, complete, or the user asks for broader background.
@@ -322,6 +322,10 @@ Important approved API compatibility notes:
 - Task 4 implemented `FlipPool` with one-side 15-piece reveal pool, shuffled initialization, draw-and-remove behavior, remaining count/type queries, and empty-pool failure.
 - Task 4 added `FlipPoolTest` for initial type distribution, draw removal, immutable remaining type snapshots, and empty-pool behavior.
 - Task 4 focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest" test` when run through a temporary `subst X:` path.
+- Task 4 was committed in `71d7b9f` with message `完成翻子池的构建`.
+- Task 5 implemented `RuleEngine.validate` with server-side mover-color checks, source/destination validation, own-piece capture rejection, per-piece movement validation, blockers, hidden-vs-revealed Guard/Bishop restrictions, and facing-Kings rejection.
+- Task 5 added `RuleEngineTest` for basic invalid moves, Rook, Cannon, Knight, Pawn, King, Guard, Bishop, and facing-Kings behavior.
+- Task 5 focused verification passed with `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest,RuleEngineTest" test` when run through a temporary `subst X:` path.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.
