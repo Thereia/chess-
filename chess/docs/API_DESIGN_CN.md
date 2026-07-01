@@ -77,6 +77,7 @@ Resign        认输
 
 ```text
 matchSuccess  匹配成功
+roomInfo      房间状态
 gameStart     游戏开始
 moveResult    走子结果
 timeout       超时
@@ -91,7 +92,6 @@ Login/register 登录注册
 cancelMatch 取消匹配
 requestFirstHand 请求先手
 ping/pong 心跳
-roomInfo 房间状态
 旁观
 聊天
 ```
@@ -238,6 +238,17 @@ capturedPiece 表示“本步吃掉的棋子是什么”。
   "opponentNickname": "Player 2"
 }
 ```
+
+如果其中一方先发送 `Ready`，服务器会给另一方补发：
+
+```json
+{
+  "messageType": "roomInfo",
+  "opponentReady": true
+}
+```
+
+这里的意思是：“你的对手已经准备好了”。
 
 然后再发：
 

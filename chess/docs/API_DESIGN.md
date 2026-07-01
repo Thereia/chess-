@@ -50,6 +50,7 @@ Implemented in the first version:
 - `move`
 - `Resign`
 - `matchSuccess`
+- `roomInfo`
 - `gameStart`
 - `moveResult`
 - `timeout`
@@ -64,7 +65,6 @@ Optional / not implemented in the first version:
 - `requestFirstHand`
 - `ping`
 - `pong`
-- `roomInfo`
 - spectator messages
 - chat messages
 
@@ -292,7 +292,24 @@ Sent after the server pairs two clients.
 
 Fields `roomId`, `opponentId`, and `opponentNickname` follow the public interface. Color assignment is not sent here; the client receives color in `gameStart`.
 
-### 8.2 gameStart
+### 8.2 roomInfo
+
+Sent when room preparation state changes before the game starts.
+
+```json
+{
+  "messageType": "roomInfo",
+  "opponentReady": true
+}
+```
+
+First-version behavior:
+
+- `roomInfo` is used during the required `Ready` stage.
+- When one player sends `Ready` first, the server sends `roomInfo` to the opponent.
+- `opponentReady=true` means the other matched player has already sent `Ready`.
+
+### 8.3 gameStart
 
 Sent when a game starts.
 
@@ -345,7 +362,7 @@ Server behavior:
 - `initialBoard` should include all occupied initial squares. Empty squares may be omitted.
 - For hidden pieces in `initialBoard`, `piece` is the original-square movement type.
 
-### 8.3 moveResult
+### 8.4 moveResult
 
 Successful move, broadcast to both players:
 
@@ -397,7 +414,7 @@ Hidden information rule:
 - Strict public-interface clients can ignore `capturedPiece`; the board can still be updated from `move`.
 - `nextTurn` is no longer sent; clients should derive turn flow from accepted moves, `gameStart`, and end messages.
 
-### 8.4 timeout
+### 8.5 timeout
 
 Sent when a player loses on time.
 
@@ -412,7 +429,7 @@ Sent when a player loses on time.
 
 Timeout uses server-side time. Client timestamps are not trusted for timeout judgment.
 
-### 8.5 gameOver
+### 8.6 gameOver
 
 Sent when the game ends.
 
@@ -434,7 +451,7 @@ resign
 
 The public interface uses `checkmate` and `resign`. For compatibility, direct king/general capture should be reported externally as `reason: "checkmate"`, even if the server internally records the ending reason as king capture.
 
-### 8.6 error
+### 8.7 error
 
 Protocol-level error message.
 
@@ -483,6 +500,7 @@ Server -> Client A: wait or no immediate response
 Client B -> Server: startMatch
 Server -> A/B: matchSuccess
 Client A -> Server: Ready
+Server -> Client B: roomInfo
 Client B -> Server: Ready
 Server -> A/B: gameStart
 ```

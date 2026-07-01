@@ -11,6 +11,7 @@ import thereia.java.chess.protocol.MessageType;
 import thereia.java.chess.protocol.GameStartMessage;
 import thereia.java.chess.protocol.GameOverMessage;
 import thereia.java.chess.protocol.MoveResultMessage;
+import thereia.java.chess.protocol.RoomInfoMessage;
 import thereia.java.chess.protocol.TimeoutMessage;
 import thereia.java.chess.record.GameRecorder;
 import thereia.java.chess.rule.MoveExecutor;
@@ -92,13 +93,13 @@ public final class GameRoom {
         }
 
         if (!redReady || !blackReady) {
-            return new ReadyResult(false, null, null);
+            return new ReadyResult(false, new RoomInfoMessage(MessageType.roomInfo.name(), true), null, null);
         }
 
         this.state = new GameState(state.getBoard(), ChessColor.RED, GameStatus.PLAYING, state.getRedPool(),
                 state.getBlackPool(), state.getNoCapturePlyCount(), state.getMoveNumber(), now, now.plusSeconds(60),
                 state.getWinnerColor(), state.getEndReason());
-        return new ReadyResult(true, gameStartFor(redPlayer), gameStartFor(blackPlayer));
+        return new ReadyResult(true, null, gameStartFor(redPlayer), gameStartFor(blackPlayer));
     }
 
     public GameOverMessage resign(String playerId) {

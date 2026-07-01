@@ -1,7 +1,7 @@
 # Project Short Card
 
 ## Current Task
-Continue Task 8: add per-turn timeout scheduling on top of the connected WebSocket room flow.
+Finish public-interface-required room-stage alignment, then prepare for frontend integration.
 
 ## Current State
 - Task 2 code and tests are written and verified.
@@ -26,18 +26,18 @@ Continue Task 8: add per-turn timeout scheduling on top of the connected WebSock
 - `Ready` is a required protocol stage: after `matchSuccess`, both players must send `Ready` before `gameStart` and `PLAYING`.
 - `GameWebSocketHandler` now handles `startMatch`, `Ready`, `move`, and `Resign`, and returns `3001` when a player sends room-dependent messages before entering a room.
 - `GameWebSocketHandler` now starts a server-side per-turn timeout after both players are ready, resets it after accepted moves, and ignores stale timer tasks through the room's deadline check.
-- Core outbound message fields now follow the public interface more closely: `gameStart` uses `redPlayerId` / `blackPlayerId` / `yourColor` / `firstHand`, `gameOver` uses `winner` / `winnerId`, and `timeout` uses `loserId` / `winnerId` / `reason`.
+- Core outbound message fields now follow the public interface more closely: `matchSuccess` uses `roomId` / `opponentId` / `opponentNickname`, `roomInfo` uses `opponentReady`, `gameStart` uses `redPlayerId` / `blackPlayerId` / `yourColor` / `firstHand`, `gameOver` uses `winner` / `winnerId`, and `timeout` uses `loserId` / `winnerId` / `reason`.
 - The only intentional message extensions still kept are `moveResult.capturedPiece` and `initialBoard[].color`.
-- Focused verification passed with `mvn -q "-Dtest=MoveRecordTest,MoveExecutorTest,GameRecorderTest,GameRoomTest" test` through the temporary `subst X:` path workaround.
+- Focused verification passed with `mvn -q "-Dtest=GameWebSocketHandlerTest,RoomManagerTest,GameRoomTest,ChessApplicationTests" test` through the temporary `subst X:` path workaround.
 - Windows + current local `javac` still has real-path classpath issues; use temporary `subst X:` mapping when running tests.
 
 ## Immediate Actions
-1. Clean up any remaining non-public-interface field names in docs so the written protocol matches the now-updated code.
-2. Add any missing room cleanup behavior after disconnect / finished game if we need it before frontend联调.
-3. Decide whether failed `moveResult` should keep extra `code` / `message` fields or whether we should trim further for stricter public-interface alignment.
-4. Prepare for frontend联调 using the now-complete root-path + Ready + move + Resign + timeout flow.
+1. Recheck the teacher assignment and public interface docs for any remaining required messages or fields we still have not aligned.
+2. Decide whether failed `moveResult` should keep extra `code` / `message` fields or whether we should trim further for stricter public-interface alignment.
+3. Add any missing room cleanup behavior after disconnect / finished game if we need it before frontend联调.
+4. Prepare for frontend联调 using the now-complete root-path + `matchSuccess` + `roomInfo` + `Ready` + `gameStart` + `move` + `Resign` + `timeout` flow.
 
 ## Completion Criteria
-- Two clients can match, both send `Ready`, receive `gameStart`, and then reach room-level `move`, `resign`, and timeout settlement through WebSocket.
+- Two clients can match, receive `matchSuccess`, observe `roomInfo` during prepare stage, both send `Ready`, receive `gameStart`, and then reach room-level `move`, `resign`, and timeout settlement through WebSocket.
 - Timeout uses scheduled server-local timing, not client clocks.
 - No history-playback API/UI work is introduced; only local game records remain in scope.

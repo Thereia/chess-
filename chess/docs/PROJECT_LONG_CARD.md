@@ -96,10 +96,10 @@ Public interface document defines these possible server-to-client messages:
 
 For the simplest version, the likely required subset is:
 
-- Client to server: `startMatch`, `move`, `Resign`
-- Server to client: `matchSuccess`, `gameStart`, `moveResult`, `timeout`, `gameOver`, `error`
+- Client to server: `startMatch`, `Ready`, `move`, `Resign`
+- Server to client: `matchSuccess`, `roomInfo`, `gameStart`, `moveResult`, `timeout`, `gameOver`, `error`
 
-Optional messages may be skipped if the implementation remains compatible with clients/servers that do not support them.
+Optional messages may be skipped if they are outside the required room and play flow. `roomInfo` should now be treated as part of the required ready-stage flow.
 
 ## Move Data Requirements
 The main assignment describes a move as:
@@ -248,7 +248,8 @@ Before implementation, complete design in this order:
 - Task 1 runtime configuration is complete and verified on Spring Boot 3.4.3.
 - Task 2 core coordinate and piece model is complete and verified.
 - Task 2 through Task 7 have been implemented, verified, and committed.
-- Current active task is Task 8: connect WebSocket room flow, then add scheduled timeout triggering.
+- Task 8 core room/WebSocket/timeout flow is implemented and verified.
+- Current active task is to finish any remaining mandatory public-interface alignment and prepare for frontend integration.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first. Read `docs/PROJECT_LONG_CARD.md` only if the short card is empty, stale, unclear, contradictory, complete, or the user asks for broader background.
@@ -260,13 +261,15 @@ Current status:
 - API design is complete enough to use as the implementation reference.
 - Rule design is approved. Implementation plan has been written. User chose inline execution.
 - Task 6 and Task 7 are committed.
-- Next task is Task 8: connect `RoomManager` and `GameWebSocketHandler` to the room flow, then schedule per-turn timeout triggering.
+- Task 8 core flow is complete, including required `Ready` handling and scheduled timeout triggering.
+- Next task is to verify the remaining mandatory public-interface details, then handle any disconnect/room-cleanup gaps needed before frontend integration.
 
 Important approved API compatibility notes:
 
 - Default cross-group WebSocket URL is `ws://host:8887`; current version keeps only the root path.
-- Core message names follow the public interface: `startMatch`, `Ready`, `move`, `Resign`, `matchSuccess`, `gameStart`, `moveResult`, `timeout`, `gameOver`, `error`.
+- Core message names follow the public interface: `startMatch`, `Ready`, `move`, `Resign`, `matchSuccess`, `roomInfo`, `gameStart`, `moveResult`, `timeout`, `gameOver`, `error`.
 - `matchSuccess` does not include color; color is sent in `gameStart`.
+- `roomInfo` is part of the required ready-stage flow and uses `opponentReady`.
 - `gameStart.initialBoard` includes occupied initial squares. `color` is an accepted convenience field.
 - `moveResult.capturedPiece` is an accepted project extension because the public interface is incomplete about captured hidden-piece visibility.
 - External `gameOver.reason` stays compatible with public values: use `checkmate` or `resign`; timeout uses the separate `timeout` message.
@@ -339,6 +342,8 @@ Important approved API compatibility notes:
 - Task 7 implemented room-level move flow in `GameRoom`: player/turn checks, rule validation, move execution, post-move finish checks for direct king capture and 80-ply no-capture draw, and response assembly.
 - Task 7 implemented room-level `resign` plus safe `timeout(expiredColor, expectedDeadline)` settlement entrypoints.
 - Task 7 added `GameRecorderTest` and `GameRoomTest` and passed focused verification with `mvn -q "-Dtest=MoveRecordTest,MoveExecutorTest,GameRecorderTest,GameRoomTest" test` through the temporary `subst X:` path.
+- Task 8 completed the connected WebSocket room flow: `RoomManager` matchmaking, required `Ready` stage, `matchSuccess`, `roomInfo`, `gameStart`, server-side timeout scheduling, and timeout reset/ignore-stale behavior in `GameWebSocketHandler`.
+- Task 8 focused verification passed with `mvn -q "-Dtest=GameWebSocketHandlerTest,RoomManagerTest,GameRoomTest,ChessApplicationTests" test` through the temporary `subst X:` path.
 - Current local environment note: on Windows with the present Oracle JDK, `javac` classpath resolution under the real project path is unreliable for tests; using temporary `subst X:` mapping remains the stable workaround.
 
 ## Decisions Not Final Yet

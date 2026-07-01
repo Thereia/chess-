@@ -21,6 +21,7 @@ import thereia.java.chess.protocol.ErrorMessage;
 import thereia.java.chess.protocol.GameOverMessage;
 import thereia.java.chess.protocol.MatchSuccessMessage;
 import thereia.java.chess.protocol.MessageType;
+import thereia.java.chess.protocol.RoomInfoMessage;
 import thereia.java.chess.protocol.TimeoutMessage;
 
 import java.io.IOException;
@@ -86,6 +87,12 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
             } catch (IOException ioException) {
                 throw new IllegalStateException("failed to send error message", ioException);
             }
+        } catch (RuntimeException exception) {
+            try {
+                send(session, ErrorMessage.of(5000, exception.getMessage()));
+            } catch (IOException ioException) {
+                throw new IllegalStateException("failed to send error message", ioException);
+            }
         }
     }
 
@@ -101,9 +108,12 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
         }
 
         GameRoom room = result.getRoom().orElseThrow();
-        MatchSuccessMessage message = new MatchSuccessMessage(MessageType.matchSuccess.name(), room.getRoomId());
-        send(sessionRegistry.find(room.getRedPlayer().getPlayerId()).orElseThrow(), message);
-        send(sessionRegistry.find(room.getBlackPlayer().getPlayerId()).orElseThrow(), message);
+        send(sessionRegistry.find(room.getRedPlayer().getPlayerId()).orElseThrow(),
+                new MatchSuccessMessage(MessageType.matchSuccess.name(), room.getRoomId(),
+                        room.getBlackPlayer().getPlayerId(), room.getBlackPlayer().getPlayerId()));
+        send(sessionRegistry.find(room.getBlackPlayer().getPlayerId()).orElseThrow(),
+                new MatchSuccessMessage(MessageType.matchSuccess.name(), room.getRoomId(),
+                        room.getRedPlayer().getPlayerId(), room.getRedPlayer().getPlayerId()));
     }
 
     private void handleReady(WebSocketSession session) throws IOException {
@@ -111,11 +121,15 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
         if (room.isEmpty()) {
             return;
         }
-        ReadyResult result = room.orElseThrow().ready(session.getId(), java.time.Instant.now());
+        GameRoom gameRoom = room.orElseThrow();
+        ReadyResult result = gameRoom.ready(session.getId(), java.time.Instant.now());
         if (!result.isStarted()) {
+            RoomInfoMessage roomInfo = result.getRoomInfo();
+            if (roomInfo != null) {
+                send(opponentSession(gameRoom, session.getId()), roomInfo);
+            }
             return;
         }
-        GameRoom gameRoom = room.orElseThrow();
         send(sessionRegistry.find(gameRoom.getRedPlayer().getPlayerId()).orElseThrow(), result.getGameStartRed());
         send(sessionRegistry.find(gameRoom.getBlackPlayer().getPlayerId()).orElseThrow(), result.getGameStartBlack());
         rescheduleTimeout(gameRoom);
@@ -166,6 +180,13 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
     private void sendToRoom(GameRoom room, Object payload) throws IOException {
         send(sessionRegistry.find(room.getRedPlayer().getPlayerId()).orElseThrow(), payload);
         send(sessionRegistry.find(room.getBlackPlayer().getPlayerId()).orElseThrow(), payload);
+    }
+
+    private WebSocketSession opponentSession(GameRoom room, String playerId) {
+        String opponentId = room.getRedPlayer().getPlayerId().equals(playerId)
+                ? room.getBlackPlayer().getPlayerId()
+                : room.getRedPlayer().getPlayerId();
+        return sessionRegistry.find(opponentId).orElseThrow();
     }
 
     private void rescheduleTimeout(GameRoom room) {

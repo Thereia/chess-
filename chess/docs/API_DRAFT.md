@@ -17,6 +17,14 @@
 }
 ```
 
+### Ready
+
+```json
+{
+  "messageType": "Ready"
+}
+```
+
 ### move
 
 Use public-interface-style fields:
@@ -54,7 +62,17 @@ Notes:
 {
   "messageType": "matchSuccess",
   "roomId": "room-1",
-  "yourColor": "red"
+  "opponentId": "player-2",
+  "opponentNickname": "Player 2"
+}
+```
+
+### roomInfo
+
+```json
+{
+  "messageType": "roomInfo",
+  "opponentReady": true
 }
 ```
 
@@ -95,7 +113,8 @@ Notes:
 {
   "messageType": "gameOver",
   "winner": "red",
-  "reason": "captureKing"
+  "reason": "checkmate",
+  "winnerId": "player-1"
 }
 ```
 

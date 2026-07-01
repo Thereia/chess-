@@ -6,6 +6,7 @@ public enum MessageType {
     move,
     Resign,
     matchSuccess,
+    roomInfo,
     gameStart,
     moveResult,
     timeout,
