@@ -1,7 +1,7 @@
 # Project Short Card
 
 ## Current Task
-Continue Task 8: connect WebSocket room flow and then add per-turn timeout scheduling.
+Continue Task 8: add per-turn timeout scheduling on top of the connected WebSocket room flow.
 
 ## Current State
 - Task 2 code and tests are written and verified.
@@ -24,14 +24,16 @@ Continue Task 8: connect WebSocket room flow and then add per-turn timeout sched
 - Task 7 added room-level move handling, local `GameRecorder`, post-move finish checks, `resign`, and safe `timeout` settlement entrypoints.
 - `GameRoom.timeout(expiredColor, expectedDeadline)` only settles when game status, current turn, and deadline still match, so later timer tasks can call it safely.
 - `Ready` is a required protocol stage: after `matchSuccess`, both players must send `Ready` before `gameStart` and `PLAYING`.
+- `GameWebSocketHandler` now handles `startMatch`, `Ready`, `move`, and `Resign`, and returns `3001` when a player sends room-dependent messages before entering a room.
+- `GameWebSocketHandler` now starts a server-side per-turn timeout after both players are ready, resets it after accepted moves, and ignores stale timer tasks through the room's deadline check.
 - Focused verification passed with `mvn -q "-Dtest=MoveRecordTest,MoveExecutorTest,GameRecorderTest,GameRoomTest" test` through the temporary `subst X:` path workaround.
 - Windows + current local `javac` still has real-path classpath issues; use temporary `subst X:` mapping when running tests.
 
 ## Immediate Actions
-1. Implement `RoomManager.startMatch` / `roomForPlayer` and create a preparing room after matching the second player.
-2. Implement required `Ready` handling so both players must send `Ready` before `gameStart` and `PLAYING`.
-3. Implement `GameWebSocketHandler.handleTextMessage` for `startMatch`, `Ready`, `move`, `Resign`, and protocol errors while keeping business logic in room/domain classes.
-4. After room flow is connected, add per-turn timeout scheduling that calls `GameRoom.timeout(expectedColor, expectedDeadline)`.
+1. Review whether `timeout` alone is the final public message for timeout end, or whether later protocol cleanup should also emit a compatible terminal-state sync.
+2. Add any missing room cleanup behavior after disconnect / finished game if we need it before frontend联调.
+3. Run a broader focused regression set once the next backend task starts touching the same handler flow.
+4. Prepare for frontend联调 using the now-complete root-path + Ready + move + Resign + timeout flow.
 
 ## Completion Criteria
 - Two clients can match, both send `Ready`, receive `gameStart`, and then reach room-level `move`, `resign`, and timeout settlement through WebSocket.

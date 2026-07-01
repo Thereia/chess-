@@ -38,8 +38,8 @@ public final class MoveExecutor {
         int nextMoveNumber = state.getMoveNumber() + 1;
 
         GameState nextState = new GameState(nextBoard, moverColor.opponent(), state.getStatus(), state.getRedPool(),
-                state.getBlackPool(), nextNoCapturePlyCount, nextMoveNumber, state.getTurnStartedAt(),
-                state.getTurnDeadlineAt(), state.getWinnerColor(), state.getEndReason());
+                state.getBlackPool(), nextNoCapturePlyCount, nextMoveNumber, now, now.plusSeconds(60),
+                state.getWinnerColor(), state.getEndReason());
         MoveRecord record = new MoveRecord(nextMoveNumber, moverColor, from, to, flipResult, capturedPiece, now,
                 state.getEndReason());
 

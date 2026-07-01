@@ -39,6 +39,8 @@ class MoveExecutorTest {
         assertThat(execution.getState().getCurrentTurn()).isEqualTo(ChessColor.BLACK);
         assertThat(execution.getState().getMoveNumber()).isEqualTo(8);
         assertThat(execution.getState().getNoCapturePlyCount()).isEqualTo(4);
+        assertThat(execution.getState().getTurnStartedAt()).isEqualTo(NOW);
+        assertThat(execution.getState().getTurnDeadlineAt()).isEqualTo(NOW.plusSeconds(60));
         assertThat(execution.getFlipResult()).isNull();
         assertThat(execution.getCapturedPiece()).isNull();
 
