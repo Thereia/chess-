@@ -247,8 +247,8 @@ Before implementation, complete design in this order:
 - User chose inline execution for implementation.
 - Task 1 runtime configuration is complete and verified on Spring Boot 3.4.3.
 - Task 2 core coordinate and piece model is complete and verified.
-- Task 2 through Task 5 have been implemented, verified, and committed.
-- Current active task is to review and commit the uncommitted Task 6 `MoveExecutor` / `MoveRecord` changes, then start Task 7.
+- Task 2 through Task 7 have been implemented, verified, and committed.
+- Current active task is Task 8: connect WebSocket room flow, then add scheduled timeout triggering.
 
 ## New Session Handoff
 When a new conversation starts, read `docs/PROJECT_SHORT_CARD.md` first. Read `docs/PROJECT_LONG_CARD.md` only if the short card is empty, stale, unclear, contradictory, complete, or the user asks for broader background.
@@ -259,8 +259,8 @@ Current status:
 - Minimal project direction has been agreed: Spring Boot server, browser clients, WebSocket JSON, server-authoritative game state, local file records, no database/Redis/login in first version.
 - API design is complete enough to use as the implementation reference.
 - Rule design is approved. Implementation plan has been written. User chose inline execution.
-- Task 6 implementation is complete but should be reviewed and committed before starting Task 7.
-- Next task after committing is Task 7: game result / local record file flow.
+- Task 6 and Task 7 are committed.
+- Next task is Task 8: connect `RoomManager` and `GameWebSocketHandler` to the room flow, then schedule per-turn timeout triggering.
 
 Important approved API compatibility notes:
 
@@ -334,13 +334,19 @@ Important approved API compatibility notes:
 - Simplified `MoveRecord` to lightweight local move record data: move number, color, from/to, flip result, captured piece, server time, and end reason. Removed movement type and no-capture counter from the record because they can be derived when inspecting records or debugging.
 - Verified the simplified `MoveRecord` together with Task 6 using `mvn -q "-Dtest=PositionTest,PieceTest,BoardTest,FlipPoolTest,RuleEngineTest,MoveExecutorTest,MoveRecordTest" test` through the temporary `subst X:` path.
 - Removed project-doc wording that implied building a history-playback feature. Keep only local game records required by the assignment; do not add extra history APIs or UI.
+- Task 6 commit status correction: `MoveExecutor` first-pass commit already existed in `b4599f9`, and the later `MoveRecord` simplification/doc cleanup was committed in `29ea9ea`.
+- Task 7 implemented `GameRecorder.append` to write accepted move records as local JSON Lines files.
+- Task 7 implemented room-level move flow in `GameRoom`: player/turn checks, rule validation, move execution, post-move finish checks for direct king capture and 80-ply no-capture draw, and response assembly.
+- Task 7 implemented room-level `resign` plus safe `timeout(expiredColor, expectedDeadline)` settlement entrypoints.
+- Task 7 added `GameRecorderTest` and `GameRoomTest` and passed focused verification with `mvn -q "-Dtest=MoveRecordTest,MoveExecutorTest,GameRecorderTest,GameRoomTest" test` through the temporary `subst X:` path.
+- Current local environment note: on Windows with the present Oracle JDK, `javac` classpath resolution under the real project path is unreliable for tests; using temporary `subst X:` mapping remains the stable workaround.
 
 ## Decisions Not Final Yet
 - Confirmed that API design should use `capturedPiece` as a project extension field for captured-piece display and hidden captured-piece visibility.
 - `capturedPiece` is clearer than overloading `move.type`: `flipResult` means moved-piece reveal, `capturedPiece` means captured-piece type.
 - JSON protocol uses English piece names; Java internals may keep numeric `0-6` codes.
 - Exact hidden captured piece payload difference between capturing side and captured side using `capturedPiece`.
-- Whether `Ready` is functionally required or simply accepted-but-not-required during implementation.
+- `Ready` is functionally required. After `matchSuccess`, the room stays in preparing state until both players send `Ready`, then the server sends `gameStart`.
 - Whether successful `moveResult` should always include `nextTurn` or leave it as ignorable convenience data.
 - Exact domain class fields and responsibilities.
 - Exact client UI representation.

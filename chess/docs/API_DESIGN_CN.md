@@ -454,4 +454,4 @@ resign          认输
 7. `initialBoard` 要包含初始有棋子的格子，且暗子不泄露真实身份。
 8. 吃暗子时，服务器可能给双方发送不同的 `moveResult`。
 9. 使用 `capturedPiece` 表示被吃棋子的可见类型。
-10. 第一版 `Ready` 可以接受，但不强依赖。
+10. `Ready` 是必须阶段：`matchSuccess` 之后，双方都发送 `Ready`，服务端才发送 `gameStart` 并正式进入对局。

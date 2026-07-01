@@ -236,8 +236,9 @@ The client tells the server it is ready after matching.
 
 First version rule:
 
-- `Ready` may be accepted but not required.
-- If not used by the frontend, the server can start immediately after two players match.
+- `Ready` is required.
+- After `matchSuccess`, both matched players must send `Ready`.
+- The server sends `gameStart` only after both players are ready.
 
 ### 7.3 move
 
@@ -343,7 +344,7 @@ Sent when a game starts.
 
 Server behavior:
 
-- Send one `gameStart` to each player.
+- Send one `gameStart` to each player only after both matched players have sent `Ready`.
 - `yourColor` differs per receiver.
 - `firstHand` is `true` for red and `false` for black.
 - `initialBoard` must not reveal hidden real piece identities.
@@ -487,6 +488,8 @@ Client A -> Server: startMatch
 Server -> Client A: wait or no immediate response
 Client B -> Server: startMatch
 Server -> A/B: matchSuccess
+Client A -> Server: Ready
+Client B -> Server: Ready
 Server -> A/B: gameStart
 ```
 

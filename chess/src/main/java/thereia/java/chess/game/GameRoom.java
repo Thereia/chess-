@@ -6,7 +6,9 @@ import thereia.java.chess.move.MoveRecord;
 import thereia.java.chess.move.MoveValidationResult;
 import thereia.java.chess.piece.ChessColor;
 import thereia.java.chess.piece.PieceType;
+import thereia.java.chess.piece.Piece;
 import thereia.java.chess.protocol.MessageType;
+import thereia.java.chess.protocol.GameStartMessage;
 import thereia.java.chess.protocol.GameOverMessage;
 import thereia.java.chess.protocol.MoveResultMessage;
 import thereia.java.chess.protocol.TimeoutMessage;
@@ -16,6 +18,8 @@ import thereia.java.chess.rule.RuleEngine;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 public final class GameRoom {
@@ -27,6 +31,8 @@ public final class GameRoom {
     private final MoveExecutor moveExecutor;
     private final GameRecorder gameRecorder;
     private GameState state;
+    private boolean redReady;
+    private boolean blackReady;
 
     public GameRoom(String roomId, Player redPlayer, Player blackPlayer, GameState state,
                     RuleEngine ruleEngine, MoveExecutor moveExecutor, GameRecorder gameRecorder) {
@@ -68,6 +74,31 @@ public final class GameRoom {
                 ? new GameOverMessage(MessageType.gameOver.name(), nextState.getWinnerColor(), nextState.getEndReason())
                 : null;
         return new RoomMoveResult(true, moveResult, gameOver);
+    }
+
+    public ReadyResult ready(String playerId, Instant now) {
+        Player player = playerFor(playerId);
+        if (player == null) {
+            throw new IllegalArgumentException("player is not in room");
+        }
+        if (state.getStatus() != GameStatus.PREPARING) {
+            throw new IllegalStateException("game is not preparing");
+        }
+
+        if (player.getColor() == ChessColor.RED) {
+            redReady = true;
+        } else {
+            blackReady = true;
+        }
+
+        if (!redReady || !blackReady) {
+            return new ReadyResult(false, null, null);
+        }
+
+        this.state = new GameState(state.getBoard(), ChessColor.RED, GameStatus.PLAYING, state.getRedPool(),
+                state.getBlackPool(), state.getNoCapturePlyCount(), state.getMoveNumber(), now, now.plusSeconds(60),
+                state.getWinnerColor(), state.getEndReason());
+        return new ReadyResult(true, gameStartFor(redPlayer), gameStartFor(blackPlayer));
     }
 
     public GameOverMessage resign(String playerId) {
@@ -159,5 +190,26 @@ public final class GameRoom {
 
     private String pieceName(PieceType pieceType) {
         return pieceType == null ? null : pieceType.name();
+    }
+
+    private GameStartMessage gameStartFor(Player player) {
+        return new GameStartMessage(MessageType.gameStart.name(), roomId, colorName(player.getColor()),
+                colorName(ChessColor.RED), initialBoard());
+    }
+
+    private List<GameStartMessage.InitialPieceMessage> initialBoard() {
+        List<GameStartMessage.InitialPieceMessage> pieces = new ArrayList<>();
+        for (int row = 0; row <= 9; row++) {
+            for (int col = 0; col <= 8; col++) {
+                thereia.java.chess.board.Position position = thereia.java.chess.board.Position.fromArrayIndex(row, col);
+                Piece piece = state.getBoard().pieceAt(position).orElse(null);
+                if (piece == null) {
+                    continue;
+                }
+                pieces.add(new GameStartMessage.InitialPieceMessage(position.getX(), position.getY(),
+                        colorName(piece.getColor()), pieceName(piece.getOriginalType()), piece.isVisible()));
+            }
+        }
+        return pieces;
     }
 }

@@ -641,8 +641,8 @@ registry.addHandler(gameWebSocketHandler, "/", "/ws/game").setAllowedOrigins("*"
 The handler must:
 
 ```text
-on startMatch -> pair players -> send matchSuccess and gameStart
-on Ready -> accept but no-op
+on startMatch -> pair players -> send matchSuccess and enter preparing state
+on Ready -> mark that player ready; when both players are ready, send gameStart and enter PLAYING
 on move -> parse, call GameRoom.handleMove, send moveResult
 on Resign -> end room and broadcast gameOver
 on unknown messageType -> send error 4002
