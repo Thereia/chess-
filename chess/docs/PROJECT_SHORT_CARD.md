@@ -1,7 +1,7 @@
 # Project Short Card
 
 ## Current Task
-Finish public-interface-required room-stage alignment, then prepare for frontend integration.
+Prepare for frontend integration on top of the now-complete login + match + room + play flow.
 
 ## Current State
 - Task 2 code and tests are written and verified.
@@ -24,20 +24,23 @@ Finish public-interface-required room-stage alignment, then prepare for frontend
 - Task 7 added room-level move handling, local `GameRecorder`, post-move finish checks, `resign`, and safe `timeout` settlement entrypoints.
 - `GameRoom.timeout(expiredColor, expectedDeadline)` only settles when game status, current turn, and deadline still match, so later timer tasks can call it safely.
 - `Ready` is a required protocol stage: after `matchSuccess`, both players must send `Ready` before `gameStart` and `PLAYING`.
+- Local-file user auth is now implemented: `register` and `Login` both return `loginResult`, and successful `register` directly logs the session in.
+- Room-dependent actions now require login first; unauthenticated requests receive `error code=3002`.
 - `GameWebSocketHandler` now handles `startMatch`, `Ready`, `move`, and `Resign`, and returns `3001` when a player sends room-dependent messages before entering a room.
 - `GameWebSocketHandler` now starts a server-side per-turn timeout after both players are ready, resets it after accepted moves, and ignores stale timer tasks through the room's deadline check.
-- Core outbound message fields now follow the public interface more closely: `matchSuccess` uses `roomId` / `opponentId` / `opponentNickname`, `roomInfo` uses `opponentReady`, `gameStart` uses `redPlayerId` / `blackPlayerId` / `yourColor` / `firstHand`, `gameOver` uses `winner` / `winnerId`, and `timeout` uses `loserId` / `winnerId` / `reason`.
+- Core outbound message fields now follow the public interface more closely: `loginResult` carries auth result, `matchSuccess` uses real `userId` / `nickName`, `roomInfo` uses `opponentReady`, `gameStart` uses `redPlayerId` / `blackPlayerId` / `yourColor` / `firstHand`, `gameOver` uses `winner` / `winnerId`, and `timeout` uses `loserId` / `winnerId` / `reason`.
 - The only intentional message extensions still kept are `moveResult.capturedPiece` and `initialBoard[].color`.
-- Focused verification passed with `mvn -q "-Dtest=GameWebSocketHandlerTest,RoomManagerTest,GameRoomTest,ChessApplicationTests" test` through the temporary `subst X:` path workaround.
+- Hidden capture visibility is now implemented through different successful `moveResult` payloads for attacker and defender.
+- Focused verification passed with `mvn -q "-Dtest=GameWebSocketHandlerTest,GameRoomTest,RoomManagerTest,WebSocketConfigTest,ChessApplicationTests" test` through the temporary `subst X:` path workaround.
 - Windows + current local `javac` still has real-path classpath issues; use temporary `subst X:` mapping when running tests.
 
 ## Immediate Actions
-1. Recheck the teacher assignment and public interface docs for any remaining required messages or fields we still have not aligned.
+1. Keep the frontend-facing final API doc aligned with the new login/register flow.
 2. Decide whether failed `moveResult` should keep extra `code` / `message` fields or whether we should trim further for stricter public-interface alignment.
 3. Add any missing room cleanup behavior after disconnect / finished game if we need it before frontend联调.
-4. Prepare for frontend联调 using the now-complete root-path + `matchSuccess` + `roomInfo` + `Ready` + `gameStart` + `move` + `Resign` + `timeout` flow.
+4. Prepare for frontend联调 using the now-complete root-path + `register/Login` + `loginResult` + `matchSuccess` + `roomInfo` + `Ready` + `gameStart` + `move` + `Resign` + `timeout` flow.
 
 ## Completion Criteria
-- Two clients can match, receive `matchSuccess`, observe `roomInfo` during prepare stage, both send `Ready`, receive `gameStart`, and then reach room-level `move`, `resign`, and timeout settlement through WebSocket.
+- Two clients can register/login, match, receive `matchSuccess`, observe `roomInfo` during prepare stage, both send `Ready`, receive `gameStart`, and then reach room-level `move`, `resign`, and timeout settlement through WebSocket.
 - Timeout uses scheduled server-local timing, not client clocks.
 - No history-playback API/UI work is introduced; only local game records remain in scope.

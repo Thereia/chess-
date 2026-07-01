@@ -8,12 +8,15 @@ import thereia.java.chess.protocol.MoveResultMessage;
 public final class RoomMoveResult {
 
     private final boolean success;
-    private final MoveResultMessage moveResult;
+    private final MoveResultMessage actorMoveResult;
+    private final MoveResultMessage opponentMoveResult;
     private final GameOverMessage gameOver;
 
-    public RoomMoveResult(boolean success, MoveResultMessage moveResult, GameOverMessage gameOver) {
+    public RoomMoveResult(boolean success, MoveResultMessage actorMoveResult, MoveResultMessage opponentMoveResult,
+                          GameOverMessage gameOver) {
         this.success = success;
-        this.moveResult = moveResult;
+        this.actorMoveResult = actorMoveResult;
+        this.opponentMoveResult = opponentMoveResult;
         this.gameOver = gameOver;
     }
 

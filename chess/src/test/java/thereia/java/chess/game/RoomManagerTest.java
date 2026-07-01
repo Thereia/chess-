@@ -2,6 +2,7 @@ package thereia.java.chess.game;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import thereia.java.chess.auth.UserAccount;
 import thereia.java.chess.board.Board;
 import thereia.java.chess.piece.ChessColor;
 import thereia.java.chess.piece.FlipPool;
@@ -24,8 +25,8 @@ class RoomManagerTest {
     void firstPlayerWaitsAndSecondCreatesPreparingRoom() {
         RoomManager roomManager = roomManager();
 
-        MatchResult first = roomManager.startMatch("A");
-        MatchResult second = roomManager.startMatch("B");
+        MatchResult first = roomManager.startMatch(user("A", "Alice"));
+        MatchResult second = roomManager.startMatch(user("B", "Bob"));
 
         assertThat(first.isMatched()).isFalse();
         assertThat(first.getWaitingPlayerId()).isEqualTo("A");
@@ -44,8 +45,8 @@ class RoomManagerTest {
     @Test
     void roomStartsPlayingOnlyAfterBothPlayersReady() {
         RoomManager roomManager = roomManager();
-        roomManager.startMatch("A");
-        GameRoom room = roomManager.startMatch("B").getRoom().orElseThrow();
+        roomManager.startMatch(user("A", "Alice"));
+        GameRoom room = roomManager.startMatch(user("B", "Bob")).getRoom().orElseThrow();
         Instant now = Instant.parse("2026-07-01T10:00:00Z");
 
         ReadyResult firstReady = room.ready("A", now);
@@ -69,5 +70,9 @@ class RoomManagerTest {
 
     private RoomManager roomManager() {
         return new RoomManager(new RuleEngine(), new MoveExecutor(), new GameRecorder(dir));
+    }
+
+    private UserAccount user(String userId, String nickName) {
+        return new UserAccount(userId, "pw", nickName);
     }
 }

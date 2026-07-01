@@ -23,6 +23,7 @@ public final class MoveExecutor {
         Piece movedPiece = board.pieceAt(from).orElseThrow();
         Piece targetPiece = board.pieceAt(to).orElse(null);
 
+        boolean capturedHiddenPiece = targetPiece != null && !targetPiece.isVisible();
         PieceType capturedPiece = capturedPiece(targetPiece, state);
         PieceType flipResult = null;
         Piece pieceAfterMove = movedPiece;
@@ -43,7 +44,8 @@ public final class MoveExecutor {
         MoveRecord record = new MoveRecord(nextMoveNumber, moverColor, from, to, flipResult, capturedPiece, now,
                 state.getEndReason());
 
-        return new MoveExecution(true, MoveValidationResult.ok(), nextState, record, flipResult, capturedPiece);
+        return new MoveExecution(true, MoveValidationResult.ok(), nextState, record, flipResult, capturedPiece,
+                capturedHiddenPiece);
     }
 
     private PieceType capturedPiece(Piece targetPiece, GameState state) {
@@ -69,15 +71,17 @@ public final class MoveExecutor {
         private final MoveRecord record;
         private final PieceType flipResult;
         private final PieceType capturedPiece;
+        private final boolean capturedHiddenPiece;
 
         public MoveExecution(boolean success, MoveValidationResult validation, GameState state, MoveRecord record,
-                             PieceType flipResult, PieceType capturedPiece) {
+                             PieceType flipResult, PieceType capturedPiece, boolean capturedHiddenPiece) {
             this.success = success;
             this.validation = validation;
             this.state = state;
             this.record = record;
             this.flipResult = flipResult;
             this.capturedPiece = capturedPiece;
+            this.capturedHiddenPiece = capturedHiddenPiece;
         }
 
     }

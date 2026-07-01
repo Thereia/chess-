@@ -1,8 +1,10 @@
 package thereia.java.chess.protocol;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class MoveResultMessage {
 
     private final String messageType;
@@ -10,12 +12,12 @@ public final class MoveResultMessage {
     private final MoveMessage move;
     private final String flipResult;
     private final boolean valid;
-    private final int code;
+    private final Integer code;
     private final String message;
     private final String capturedPiece;
 
     public MoveResultMessage(String messageType, boolean success, MoveMessage move, String flipResult, boolean valid,
-                             int code, String message,
+                             Integer code, String message,
                              String capturedPiece) {
         this.messageType = messageType;
         this.success = success;

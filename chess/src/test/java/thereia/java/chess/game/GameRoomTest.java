@@ -17,6 +17,7 @@ import thereia.java.chess.rule.MoveExecutor;
 import thereia.java.chess.rule.RuleEngine;
 
 import java.nio.file.Path;
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.Random;
 
@@ -29,7 +30,7 @@ class GameRoomTest {
 
     @Test
     void returnsMoveResultAndGameOverAfterCapturingKing() {
-        GameRoom room = new GameRoom("room-1", new Player("red", ChessColor.RED), new Player("black", ChessColor.BLACK),
+        GameRoom room = new GameRoom("room-1", new Player("red", "red", ChessColor.RED), new Player("black", "black", ChessColor.BLACK),
                 state(Board.empty()
                                 .put(Position.of("e", 0), Piece.visible("r-e0", ChessColor.RED, PieceType.KING))
                                 .put(Position.of("e", 9), Piece.visible("b-e9", ChessColor.BLACK, PieceType.KING))
@@ -39,7 +40,7 @@ class GameRoomTest {
 
         RoomMoveResult result = room.handleMove("red", move("e", 1, "e", 9), Instant.parse("2026-06-30T08:00:00Z"));
 
-        MoveResultMessage moveResult = result.getMoveResult();
+        MoveResultMessage moveResult = result.getActorMoveResult();
         GameOverMessage gameOver = result.getGameOver();
 
         assertThat(result.isSuccess()).isTrue();
@@ -58,7 +59,7 @@ class GameRoomTest {
 
     @Test
     void declaresDrawWhenNoCaptureCountReachesEighty() {
-        GameRoom room = new GameRoom("room-2", new Player("red", ChessColor.RED), new Player("black", ChessColor.BLACK),
+        GameRoom room = new GameRoom("room-2", new Player("red", "red", ChessColor.RED), new Player("black", "black", ChessColor.BLACK),
                 state(Board.empty()
                                 .put(Position.of("e", 0), Piece.visible("r-e0", ChessColor.RED, PieceType.KING))
                                 .put(Position.of("e", 9), Piece.visible("b-e9", ChessColor.BLACK, PieceType.KING))
@@ -70,7 +71,7 @@ class GameRoomTest {
         RoomMoveResult result = room.handleMove("red", move("a", 0, "a", 1), Instant.parse("2026-06-30T08:00:00Z"));
 
         assertThat(result.isSuccess()).isTrue();
-        assertThat(result.getMoveResult()).isNotNull();
+        assertThat(result.getActorMoveResult()).isNotNull();
         assertThat(result.getGameOver()).isNotNull();
         assertThat(result.getGameOver().getWinner()).isNull();
         assertThat(result.getGameOver().getWinnerId()).isNull();
@@ -82,7 +83,7 @@ class GameRoomTest {
 
     @Test
     void resignEndsGameForOpponent() {
-        GameRoom room = new GameRoom("room-3", new Player("red", ChessColor.RED), new Player("black", ChessColor.BLACK),
+        GameRoom room = new GameRoom("room-3", new Player("red", "red", ChessColor.RED), new Player("black", "black", ChessColor.BLACK),
                 state(Board.empty()
                                 .put(Position.of("e", 0), Piece.visible("r-e0", ChessColor.RED, PieceType.KING))
                                 .put(Position.of("e", 9), Piece.visible("b-e9", ChessColor.BLACK, PieceType.KING))
@@ -103,7 +104,7 @@ class GameRoomTest {
 
     @Test
     void timeoutEndsGameForOpponentAndReturnsTimeoutMessage() {
-        GameRoom room = new GameRoom("room-4", new Player("red", ChessColor.RED), new Player("black", ChessColor.BLACK),
+        GameRoom room = new GameRoom("room-4", new Player("red", "red", ChessColor.RED), new Player("black", "black", ChessColor.BLACK),
                 state(Board.empty()
                                 .put(Position.of("e", 0), Piece.visible("r-e0", ChessColor.RED, PieceType.KING))
                                 .put(Position.of("e", 9), Piece.visible("b-e9", ChessColor.BLACK, PieceType.KING))
@@ -120,6 +121,25 @@ class GameRoomTest {
         assertThat(room.getState().getStatus()).isEqualTo(GameStatus.ENDED);
         assertThat(room.getState().getWinnerColor()).isEqualTo("BLACK");
         assertThat(room.getState().getEndReason()).isEqualTo("timeout");
+    }
+
+    @Test
+    void hidesCapturedHiddenPieceTypeFromDefenderView() {
+        GameRoom room = new GameRoom("room-5", new Player("red", "red", ChessColor.RED), new Player("black", "black", ChessColor.BLACK),
+                state(Board.empty()
+                                .put(Position.of("e", 0), Piece.visible("r-e0", ChessColor.RED, PieceType.KING))
+                                .put(Position.of("e", 9), Piece.visible("b-e9", ChessColor.BLACK, PieceType.KING))
+                                .put(Position.of("e", 4), Piece.visible("r-e4", ChessColor.RED, PieceType.PAWN))
+                                .put(Position.of("a", 0), Piece.visible("r-a0", ChessColor.RED, PieceType.ROOK))
+                                .put(Position.of("a", 3), Piece.hidden("b-a3", ChessColor.BLACK, PieceType.PAWN)),
+                        ChessColor.RED, 0, 0),
+                new RuleEngine(), new MoveExecutor(), new GameRecorder(dir));
+
+        RoomMoveResult result = room.handleMove("red", move("a", 0, "a", 3), Instant.parse("2026-06-30T08:00:00Z"));
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getActorMoveResult().getCapturedPiece()).isNotNull();
+        assertThat(result.getOpponentMoveResult().getCapturedPiece()).isNull();
     }
 
     private GameState state(Board board, ChessColor currentTurn, int noCapturePlyCount, int moveNumber) {

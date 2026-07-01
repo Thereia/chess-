@@ -1,5 +1,6 @@
 package thereia.java.chess.game;
 
+import thereia.java.chess.auth.UserAccount;
 import thereia.java.chess.board.Board;
 import thereia.java.chess.piece.ChessColor;
 import thereia.java.chess.piece.FlipPool;
@@ -17,7 +18,7 @@ public final class RoomManager {
     private final MoveExecutor moveExecutor;
     private final GameRecorder gameRecorder;
 
-    private String waitingSessionId;
+    private UserAccount waitingUser;
     private GameRoom activeRoom;
 
     public RoomManager(RuleEngine ruleEngine, MoveExecutor moveExecutor, GameRecorder gameRecorder) {
@@ -26,31 +27,31 @@ public final class RoomManager {
         this.gameRecorder = gameRecorder;
     }
 
-    public MatchResult startMatch(String sessionId) {
-        if (activeRoom != null && roomForPlayer(sessionId).isPresent()) {
+    public MatchResult startMatch(UserAccount user) {
+        if (activeRoom != null && roomForPlayer(user.getUserId()).isPresent()) {
             return new MatchResult(true, null, Optional.of(activeRoom));
         }
-        if (waitingSessionId == null) {
-            waitingSessionId = sessionId;
-            return new MatchResult(false, sessionId, Optional.empty());
+        if (waitingUser == null) {
+            waitingUser = user;
+            return new MatchResult(false, user.getUserId(), Optional.empty());
         }
-        if (waitingSessionId.equals(sessionId)) {
-            return new MatchResult(false, sessionId, Optional.empty());
+        if (waitingUser.getUserId().equals(user.getUserId())) {
+            return new MatchResult(false, user.getUserId(), Optional.empty());
         }
 
-        activeRoom = new GameRoom("room-1", new Player(waitingSessionId, ChessColor.RED),
-                new Player(sessionId, ChessColor.BLACK), initialPreparingState(),
+        activeRoom = new GameRoom("room-1", new Player(waitingUser.getUserId(), waitingUser.getNickName(), ChessColor.RED),
+                new Player(user.getUserId(), user.getNickName(), ChessColor.BLACK), initialPreparingState(),
                 ruleEngine, moveExecutor, gameRecorder);
-        waitingSessionId = null;
+        waitingUser = null;
         return new MatchResult(true, null, Optional.of(activeRoom));
     }
 
-    public Optional<GameRoom> roomForPlayer(String sessionId) {
+    public Optional<GameRoom> roomForPlayer(String playerId) {
         if (activeRoom == null) {
             return Optional.empty();
         }
-        if (activeRoom.getRedPlayer().getPlayerId().equals(sessionId)
-                || activeRoom.getBlackPlayer().getPlayerId().equals(sessionId)) {
+        if (activeRoom.getRedPlayer().getPlayerId().equals(playerId)
+                || activeRoom.getBlackPlayer().getPlayerId().equals(playerId)) {
             return Optional.of(activeRoom);
         }
         return Optional.empty();

@@ -70,11 +70,12 @@ public final class GameRoom {
         this.state = nextState;
         appendRecord(record);
 
-        MoveResultMessage moveResult = successMoveResult(move, execution, nextState);
+        MoveResultMessage actorMoveResult = successMoveResult(move, execution, false);
+        MoveResultMessage opponentMoveResult = successMoveResult(move, execution, true);
         GameOverMessage gameOver = nextState.getStatus() == GameStatus.ENDED
                 ? gameOverFor(nextState)
                 : null;
-        return new RoomMoveResult(true, moveResult, gameOver);
+        return new RoomMoveResult(true, actorMoveResult, opponentMoveResult, gameOver);
     }
 
     public ReadyResult ready(String playerId, Instant now) {
@@ -144,7 +145,7 @@ public final class GameRoom {
     private RoomMoveResult invalidMove(MoveValidationResult validation, Move move) {
         MoveResultMessage moveResult = new MoveResultMessage(MessageType.moveResult.name(), false, moveMessage(move),
                 null, validation.isValid(), validation.getCode(), validation.getMessage(), null);
-        return new RoomMoveResult(false, moveResult, null);
+        return new RoomMoveResult(false, moveResult, null, null);
     }
 
     private GameState maybeFinishAfterMove(GameState nextState, MoveExecutor.MoveExecution execution) {
@@ -176,9 +177,11 @@ public final class GameRoom {
         }
     }
 
-    private MoveResultMessage successMoveResult(Move move, MoveExecutor.MoveExecution execution, GameState nextState) {
+    private MoveResultMessage successMoveResult(Move move, MoveExecutor.MoveExecution execution,
+                                                boolean hideCapturedPiece) {
         return new MoveResultMessage(MessageType.moveResult.name(), true, moveMessage(move),
-                pieceName(execution.getFlipResult()), true, 0, "ok", pieceName(execution.getCapturedPiece()));
+                pieceName(execution.getFlipResult()), true, null, null,
+                hideCapturedPiece && execution.isCapturedHiddenPiece() ? null : pieceName(execution.getCapturedPiece()));
     }
 
     private MoveResultMessage.MoveMessage moveMessage(Move move) {

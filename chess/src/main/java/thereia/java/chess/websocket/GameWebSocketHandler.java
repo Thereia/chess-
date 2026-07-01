@@ -9,6 +9,8 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import thereia.java.chess.auth.UserAccount;
+import thereia.java.chess.auth.UserStore;
 import thereia.java.chess.board.Position;
 import thereia.java.chess.game.GameRoom;
 import thereia.java.chess.game.MatchResult;
@@ -19,6 +21,7 @@ import thereia.java.chess.move.Move;
 import thereia.java.chess.piece.ChessColor;
 import thereia.java.chess.protocol.ErrorMessage;
 import thereia.java.chess.protocol.GameOverMessage;
+import thereia.java.chess.protocol.LoginResultMessage;
 import thereia.java.chess.protocol.MatchSuccessMessage;
 import thereia.java.chess.protocol.MessageType;
 import thereia.java.chess.protocol.RoomInfoMessage;
@@ -39,18 +42,24 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SessionRegistry sessionRegistry;
     private final RoomManager roomManager;
+    private final UserStore userStore;
     private final TimeoutScheduler timeoutScheduler;
     private final Map<String, ScheduledFuture<?>> roomTimeoutTasks = new ConcurrentHashMap<>();
 
     public GameWebSocketHandler(SessionRegistry sessionRegistry, RoomManager roomManager) {
-        this(sessionRegistry, roomManager, new DefaultTimeoutScheduler());
+        this(sessionRegistry, roomManager, defaultUserStore(), new DefaultTimeoutScheduler());
+    }
+
+    public GameWebSocketHandler(SessionRegistry sessionRegistry, RoomManager roomManager, UserStore userStore) {
+        this(sessionRegistry, roomManager, userStore, new DefaultTimeoutScheduler());
     }
 
     @Autowired
     public GameWebSocketHandler(SessionRegistry sessionRegistry, RoomManager roomManager,
-                                TimeoutScheduler timeoutScheduler) {
+                                UserStore userStore, TimeoutScheduler timeoutScheduler) {
         this.sessionRegistry = sessionRegistry;
         this.roomManager = roomManager;
+        this.userStore = userStore;
         this.timeoutScheduler = timeoutScheduler;
     }
 
@@ -64,6 +73,14 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
         try {
             JsonNode payload = objectMapper.readTree(message.getPayload());
             MessageEnvelope envelope = objectMapper.treeToValue(payload, MessageEnvelope.class);
+            if (MessageType.register.name().equals(envelope.getMessageType())) {
+                handleRegister(session, objectMapper.treeToValue(payload, LoginRequest.class));
+                return;
+            }
+            if (MessageType.Login.name().equals(envelope.getMessageType())) {
+                handleLogin(session, objectMapper.treeToValue(payload, LoginRequest.class));
+                return;
+            }
             if (MessageType.startMatch.name().equals(envelope.getMessageType())) {
                 handleStartMatch(session);
                 return;
@@ -101,55 +118,95 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
         sessionRegistry.remove(session.getId());
     }
 
+    private void handleRegister(WebSocketSession session, LoginRequest request) throws IOException {
+        Optional<UserAccount> registered = userStore.register(request.getUserId(), request.getPassWord(),
+                request.getNickName());
+        if (registered.isEmpty()) {
+            send(session, new LoginResultMessage(MessageType.loginResult.name(), false, "user already exists",
+                    null, null));
+            return;
+        }
+        UserAccount account = registered.orElseThrow();
+        sessionRegistry.bindUser(session.getId(), account);
+        send(session, new LoginResultMessage(MessageType.loginResult.name(), true, "ok", account.getUserId(),
+                account.getNickName()));
+    }
+
+    private void handleLogin(WebSocketSession session, LoginRequest request) throws IOException {
+        Optional<UserAccount> loggedIn = userStore.login(request.getUserId(), request.getPassWord());
+        if (loggedIn.isEmpty()) {
+            send(session, new LoginResultMessage(MessageType.loginResult.name(), false, "wrong userId or passWord",
+                    null, null));
+            return;
+        }
+        UserAccount account = loggedIn.orElseThrow();
+        sessionRegistry.bindUser(session.getId(), account);
+        send(session, new LoginResultMessage(MessageType.loginResult.name(), true, "ok", account.getUserId(),
+                account.getNickName()));
+    }
+
     private void handleStartMatch(WebSocketSession session) throws IOException {
-        MatchResult result = roomManager.startMatch(session.getId());
+        UserAccount user = requireLogin(session).orElse(null);
+        if (user == null) {
+            return;
+        }
+        MatchResult result = roomManager.startMatch(user);
         if (!result.isMatched()) {
             return;
         }
 
         GameRoom room = result.getRoom().orElseThrow();
-        send(sessionRegistry.find(room.getRedPlayer().getPlayerId()).orElseThrow(),
+        send(sessionRegistry.findByUserId(room.getRedPlayer().getPlayerId()).orElseThrow(),
                 new MatchSuccessMessage(MessageType.matchSuccess.name(), room.getRoomId(),
-                        room.getBlackPlayer().getPlayerId(), room.getBlackPlayer().getPlayerId()));
-        send(sessionRegistry.find(room.getBlackPlayer().getPlayerId()).orElseThrow(),
+                        room.getBlackPlayer().getPlayerId(), room.getBlackPlayer().getNickName()));
+        send(sessionRegistry.findByUserId(room.getBlackPlayer().getPlayerId()).orElseThrow(),
                 new MatchSuccessMessage(MessageType.matchSuccess.name(), room.getRoomId(),
-                        room.getRedPlayer().getPlayerId(), room.getRedPlayer().getPlayerId()));
+                        room.getRedPlayer().getPlayerId(), room.getRedPlayer().getNickName()));
     }
 
     private void handleReady(WebSocketSession session) throws IOException {
-        Optional<GameRoom> room = roomForPlayer(session);
+        String playerId = requireLogin(session).map(UserAccount::getUserId).orElse(null);
+        if (playerId == null) {
+            return;
+        }
+        Optional<GameRoom> room = roomForPlayer(session, playerId);
         if (room.isEmpty()) {
             return;
         }
         GameRoom gameRoom = room.orElseThrow();
-        ReadyResult result = gameRoom.ready(session.getId(), java.time.Instant.now());
+        ReadyResult result = gameRoom.ready(playerId, java.time.Instant.now());
         if (!result.isStarted()) {
             RoomInfoMessage roomInfo = result.getRoomInfo();
             if (roomInfo != null) {
-                send(opponentSession(gameRoom, session.getId()), roomInfo);
+                send(opponentSession(gameRoom, playerId), roomInfo);
             }
             return;
         }
-        send(sessionRegistry.find(gameRoom.getRedPlayer().getPlayerId()).orElseThrow(), result.getGameStartRed());
-        send(sessionRegistry.find(gameRoom.getBlackPlayer().getPlayerId()).orElseThrow(), result.getGameStartBlack());
+        send(sessionRegistry.findByUserId(gameRoom.getRedPlayer().getPlayerId()).orElseThrow(), result.getGameStartRed());
+        send(sessionRegistry.findByUserId(gameRoom.getBlackPlayer().getPlayerId()).orElseThrow(), result.getGameStartBlack());
         rescheduleTimeout(gameRoom);
     }
 
     private void handleMove(WebSocketSession session, MoveRequest request) throws IOException {
-        Optional<GameRoom> room = roomForPlayer(session);
+        String playerId = requireLogin(session).map(UserAccount::getUserId).orElse(null);
+        if (playerId == null) {
+            return;
+        }
+        Optional<GameRoom> room = roomForPlayer(session, playerId);
         if (room.isEmpty()) {
             return;
         }
         Move move = new Move(Position.of(request.getFromX(), request.getFromY()),
                 Position.of(request.getToX(), request.getToY()), request.isFlip());
-        RoomMoveResult result = room.orElseThrow().handleMove(session.getId(), move, Instant.now());
+        RoomMoveResult result = room.orElseThrow().handleMove(playerId, move, Instant.now());
         if (!result.isSuccess()) {
-            send(session, result.getMoveResult());
+            send(session, result.getActorMoveResult());
             return;
         }
 
         GameRoom gameRoom = room.orElseThrow();
-        sendToRoom(gameRoom, result.getMoveResult());
+        send(session, result.getActorMoveResult());
+        send(opponentSession(gameRoom, playerId), result.getOpponentMoveResult());
         if (result.getGameOver() != null) {
             cancelTimeout(gameRoom.getRoomId());
             sendToRoom(gameRoom, result.getGameOver());
@@ -159,18 +216,22 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void handleResign(WebSocketSession session) throws IOException {
-        Optional<GameRoom> room = roomForPlayer(session);
+        String playerId = requireLogin(session).map(UserAccount::getUserId).orElse(null);
+        if (playerId == null) {
+            return;
+        }
+        Optional<GameRoom> room = roomForPlayer(session, playerId);
         if (room.isEmpty()) {
             return;
         }
         GameRoom gameRoom = room.orElseThrow();
-        GameOverMessage gameOver = gameRoom.resign(session.getId());
+        GameOverMessage gameOver = gameRoom.resign(playerId);
         cancelTimeout(gameRoom.getRoomId());
         sendToRoom(gameRoom, gameOver);
     }
 
-    private Optional<GameRoom> roomForPlayer(WebSocketSession session) throws IOException {
-        Optional<GameRoom> room = roomManager.roomForPlayer(session.getId());
+    private Optional<GameRoom> roomForPlayer(WebSocketSession session, String playerId) throws IOException {
+        Optional<GameRoom> room = roomManager.roomForPlayer(playerId);
         if (room.isEmpty()) {
             send(session, ErrorMessage.of(3001, "room not found"));
         }
@@ -178,15 +239,27 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void sendToRoom(GameRoom room, Object payload) throws IOException {
-        send(sessionRegistry.find(room.getRedPlayer().getPlayerId()).orElseThrow(), payload);
-        send(sessionRegistry.find(room.getBlackPlayer().getPlayerId()).orElseThrow(), payload);
+        send(sessionRegistry.findByUserId(room.getRedPlayer().getPlayerId()).orElseThrow(), payload);
+        send(sessionRegistry.findByUserId(room.getBlackPlayer().getPlayerId()).orElseThrow(), payload);
     }
 
     private WebSocketSession opponentSession(GameRoom room, String playerId) {
         String opponentId = room.getRedPlayer().getPlayerId().equals(playerId)
                 ? room.getBlackPlayer().getPlayerId()
                 : room.getRedPlayer().getPlayerId();
-        return sessionRegistry.find(opponentId).orElseThrow();
+        return sessionRegistry.findByUserId(opponentId).orElseThrow();
+    }
+
+    private Optional<UserAccount> requireLogin(WebSocketSession session) throws IOException {
+        Optional<UserAccount> user = sessionRegistry.userOf(session.getId());
+        if (user.isEmpty()) {
+            send(session, ErrorMessage.of(3002, "login required"));
+        }
+        return user;
+    }
+
+    private static UserStore defaultUserStore() {
+        return new UserStore(java.nio.file.Path.of("data", "users.json"));
     }
 
     private void rescheduleTimeout(GameRoom room) {
@@ -292,6 +365,46 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
 
         public void setIsFlip(boolean flip) {
             isFlip = flip;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static final class LoginRequest {
+        private String messageType;
+        private String userId;
+        private String passWord;
+        private String nickName;
+
+        public String getMessageType() {
+            return messageType;
+        }
+
+        public void setMessageType(String messageType) {
+            this.messageType = messageType;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+
+        public String getPassWord() {
+            return passWord;
+        }
+
+        public void setPassWord(String passWord) {
+            this.passWord = passWord;
+        }
+
+        public String getNickName() {
+            return nickName;
+        }
+
+        public void setNickName(String nickName) {
+            this.nickName = nickName;
         }
     }
 }

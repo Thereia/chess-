@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import thereia.java.chess.auth.UserStore;
 import thereia.java.chess.game.RoomManager;
 import thereia.java.chess.record.GameRecorder;
 import thereia.java.chess.rule.MoveExecutor;
@@ -28,7 +29,8 @@ class WebSocketConfigTest {
     @Test
     void registersOnlyRootWebSocketPath() {
         GameWebSocketHandler handler = new GameWebSocketHandler(new SessionRegistry(),
-                new RoomManager(new RuleEngine(), new MoveExecutor(), new GameRecorder(dir)));
+                new RoomManager(new RuleEngine(), new MoveExecutor(), new GameRecorder(dir)),
+                new UserStore(dir.resolve("users.json")));
         WebSocketConfig config = new WebSocketConfig(handler);
         WebSocketHandlerRegistry registry = mock(WebSocketHandlerRegistry.class);
         WebSocketHandlerRegistration registration = mock(WebSocketHandlerRegistration.class);
