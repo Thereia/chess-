@@ -264,7 +264,7 @@ Current status:
 
 Important approved API compatibility notes:
 
-- Default cross-group WebSocket URL is `ws://host:8887`; `/ws/game` is only a project-local alias.
+- Default cross-group WebSocket URL is `ws://host:8887`; current version keeps only the root path.
 - Core message names follow the public interface: `startMatch`, `Ready`, `move`, `Resign`, `matchSuccess`, `gameStart`, `moveResult`, `timeout`, `gameOver`, `error`.
 - `matchSuccess` does not include color; color is sent in `gameStart`.
 - `gameStart.initialBoard` includes occupied initial squares. `color` is an accepted convenience field.
@@ -291,7 +291,7 @@ Important approved API compatibility notes:
 - Agreed that WebSocket business errors should be returned as JSON business codes rather than becoming HTTP `500` / `401` style responses.
 - Added the PPTX as supplemental protocol background and confirmed it reinforces using WebSocket + JSON as the primary protocol, with TCP as an extension rather than our required path.
 - Drafted `docs/API_DESIGN.md` for the minimal WebSocket JSON protocol.
-- During API review, corrected the public-compatible WebSocket default to root `ws://host:8887`; `/ws/game` is only a project-local alias.
+- During API review, corrected the public-compatible WebSocket default to root `ws://host:8887` and removed the extra alias path.
 - During API review, marked `capturedPiece` as a project extension field for Q&A hidden-capture visibility, not a course public-interface base field.
 - During API review, corrected `matchSuccess` to follow the public interface and not include color; color is sent in `gameStart`.
 - During API review, clarified that `initialBoard` should include occupied initial squares. For hidden pieces, `piece` is the original-square movement type, not the hidden real identity.

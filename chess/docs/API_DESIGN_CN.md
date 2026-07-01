@@ -38,13 +38,7 @@ ws://localhost:8887
 ws://对方IP:8887
 ```
 
-本项目也可以额外支持一个自己的别名：
-
-```text
-ws://localhost:8887/ws/game
-```
-
-但是为了贴近公共接口，和别组联调时优先使用根地址 `ws://host:8887`。
+当前版本只支持根地址 `ws://host:8887`，不再额外提供其他 WebSocket 路径别名。
 
 所以前端最好不要把连接地址写死成只能 `localhost`。
 
@@ -449,7 +443,7 @@ resign          认输
 2. 走子接口使用 `fromX/fromY/toX/toY/isFlip`。
 3. 坐标规定为 `e0` 红帅，`e9` 黑将。
 4. 错误不套统一 `Result<T>`，而是直接返回公共接口格式。
-5. 默认 WebSocket 地址用 `ws://host:8887`，`/ws/game` 只作为本项目额外别名。
+5. 默认 WebSocket 地址用 `ws://host:8887`，当前版本只保留根路径。
 6. `matchSuccess` 不带颜色，颜色在 `gameStart` 里发。
 7. `initialBoard` 要包含初始有棋子的格子，且暗子不泄露真实身份。
 8. 吃暗子时，服务器可能给双方发送不同的 `moveResult`。

@@ -23,13 +23,7 @@ For LAN testing, the client may connect to:
 ws://<server-ip>:8887
 ```
 
-Project-local alias:
-
-```text
-ws://localhost:8887/ws/game
-```
-
-The root URL follows the course public interface example. `/ws/game` is only a convenience alias for our own frontend. For cross-group testing, prefer the root URL unless the other side explicitly agrees on a path.
+The root URL follows the course public interface example and is the only supported WebSocket path in the current version.
 
 The frontend must not assume the server is always `localhost`. It should allow the connection URL to be changed for cross-group testing.
 

@@ -2,7 +2,7 @@
 
 ## Transport
 - WebSocket.
-- Planned local URL: `ws://localhost:8887/ws/game`.
+- Planned local URL: `ws://localhost:8887`.
 - Static page URL: `http://localhost:8887/index.html`.
 - Message body format: JSON.
 - Every message has `messageType`.
@@ -137,4 +137,3 @@ NULL
 ```
 
 `NULL` is used when a hidden captured piece type must not be revealed to a receiver.
-
