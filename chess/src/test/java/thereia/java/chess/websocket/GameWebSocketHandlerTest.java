@@ -59,10 +59,20 @@ class GameWebSocketHandlerTest {
                 .anyMatch(payload -> payload.contains("\"messageType\":\"matchSuccess\""));
         assertThat(captorA.getAllValues()).extracting(TextMessage::getPayload)
                 .anyMatch(payload -> payload.contains("\"messageType\":\"gameStart\""));
+        assertThat(captorA.getAllValues()).extracting(TextMessage::getPayload)
+                .anyMatch(payload -> payload.contains("\"redPlayerId\":\"A\"")
+                        && payload.contains("\"blackPlayerId\":\"B\"")
+                        && payload.contains("\"yourColor\":\"red\"")
+                        && payload.contains("\"firstHand\":true"));
         assertThat(captorB.getAllValues()).extracting(TextMessage::getPayload)
                 .anyMatch(payload -> payload.contains("\"messageType\":\"matchSuccess\""));
         assertThat(captorB.getAllValues()).extracting(TextMessage::getPayload)
                 .anyMatch(payload -> payload.contains("\"messageType\":\"gameStart\""));
+        assertThat(captorB.getAllValues()).extracting(TextMessage::getPayload)
+                .anyMatch(payload -> payload.contains("\"redPlayerId\":\"A\"")
+                        && payload.contains("\"blackPlayerId\":\"B\"")
+                        && payload.contains("\"yourColor\":\"black\"")
+                        && payload.contains("\"firstHand\":false"));
     }
 
     @Test
@@ -93,9 +103,15 @@ class GameWebSocketHandlerTest {
         verify(sessionB, atLeastOnce()).sendMessage(captorB.capture());
 
         assertThat(captorA.getAllValues()).extracting(TextMessage::getPayload)
-                .anyMatch(payload -> payload.contains("\"messageType\":\"moveResult\""));
+                .anyMatch(payload -> payload.contains("\"messageType\":\"moveResult\"")
+                        && payload.contains("\"move\":{\"fromX\":\"a\",\"fromY\":3,\"toX\":\"a\",\"toY\":4,\"flip\":false}")
+                        && payload.contains("\"valid\":true")
+                        && !payload.contains("\"nextTurn\""));
         assertThat(captorB.getAllValues()).extracting(TextMessage::getPayload)
-                .anyMatch(payload -> payload.contains("\"messageType\":\"moveResult\""));
+                .anyMatch(payload -> payload.contains("\"messageType\":\"moveResult\"")
+                        && payload.contains("\"move\":{\"fromX\":\"a\",\"fromY\":3,\"toX\":\"a\",\"toY\":4,\"flip\":false}")
+                        && payload.contains("\"valid\":true")
+                        && !payload.contains("\"nextTurn\""));
     }
 
     @Test
@@ -126,9 +142,13 @@ class GameWebSocketHandlerTest {
 
         assertThat(captorA.getAllValues()).extracting(TextMessage::getPayload)
                 .anyMatch(payload -> payload.contains("\"messageType\":\"gameOver\"")
+                        && payload.contains("\"winner\":\"black\"")
+                        && payload.contains("\"winnerId\":\"B\"")
                         && payload.contains("\"reason\":\"resign\""));
         assertThat(captorB.getAllValues()).extracting(TextMessage::getPayload)
                 .anyMatch(payload -> payload.contains("\"messageType\":\"gameOver\"")
+                        && payload.contains("\"winner\":\"black\"")
+                        && payload.contains("\"winnerId\":\"B\"")
                         && payload.contains("\"reason\":\"resign\""));
     }
 
@@ -245,6 +265,37 @@ class GameWebSocketHandlerTest {
         verify(sessionA, atLeastOnce()).sendMessage(captorA.capture());
         assertThat(captorA.getAllValues()).extracting(TextMessage::getPayload)
                 .noneMatch(payload -> payload.contains("\"messageType\":\"timeout\""));
+    }
+
+    @Test
+    void broadcastsPublicInterfaceTimeoutFields() throws Exception {
+        SessionRegistry sessionRegistry = new SessionRegistry();
+        RoomManager roomManager = new RoomManager(new RuleEngine(), new MoveExecutor(), new GameRecorder(dir));
+        RecordingTimeoutScheduler scheduler = new RecordingTimeoutScheduler();
+        GameWebSocketHandler handler = new GameWebSocketHandler(sessionRegistry, roomManager, scheduler);
+        WebSocketSession sessionA = mock(WebSocketSession.class);
+        WebSocketSession sessionB = mock(WebSocketSession.class);
+
+        when(sessionA.getId()).thenReturn("A");
+        when(sessionB.getId()).thenReturn("B");
+
+        handler.afterConnectionEstablished(sessionA);
+        handler.afterConnectionEstablished(sessionB);
+
+        handler.handleTextMessage(sessionA, new TextMessage("{\"messageType\":\"startMatch\"}"));
+        handler.handleTextMessage(sessionB, new TextMessage("{\"messageType\":\"startMatch\"}"));
+        handler.handleTextMessage(sessionA, new TextMessage("{\"messageType\":\"Ready\"}"));
+        handler.handleTextMessage(sessionB, new TextMessage("{\"messageType\":\"Ready\"}"));
+
+        scheduler.tasks().get(0).run();
+
+        ArgumentCaptor<TextMessage> captorA = ArgumentCaptor.forClass(TextMessage.class);
+        verify(sessionA, atLeastOnce()).sendMessage(captorA.capture());
+        assertThat(captorA.getAllValues()).extracting(TextMessage::getPayload)
+                .anyMatch(payload -> payload.contains("\"messageType\":\"timeout\"")
+                        && payload.contains("\"loserId\":\"A\"")
+                        && payload.contains("\"winnerId\":\"B\"")
+                        && payload.contains("\"reason\":\"timeout\""));
     }
 
     private static final class RecordingTimeoutScheduler implements TimeoutScheduler {

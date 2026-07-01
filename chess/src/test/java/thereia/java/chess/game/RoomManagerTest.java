@@ -59,8 +59,10 @@ class RoomManagerTest {
         assertThat(secondReady.isStarted()).isTrue();
         assertThat(secondReady.getGameStartRed()).isNotNull();
         assertThat(secondReady.getGameStartBlack()).isNotNull();
-        assertThat(secondReady.getGameStartRed().getPlayerColor()).isEqualTo("RED");
-        assertThat(secondReady.getGameStartBlack().getPlayerColor()).isEqualTo("BLACK");
+        assertThat(secondReady.getGameStartRed().getYourColor()).isEqualTo("red");
+        assertThat(secondReady.getGameStartBlack().getYourColor()).isEqualTo("black");
+        assertThat(secondReady.getGameStartRed().getRedPlayerId()).isEqualTo("A");
+        assertThat(secondReady.getGameStartRed().getBlackPlayerId()).isEqualTo("B");
         assertThat(room.getState().getCurrentTurn()).isEqualTo(ChessColor.RED);
         assertThat(room.getState().getTurnStartedAt()).isEqualTo(now.plusSeconds(1));
     }

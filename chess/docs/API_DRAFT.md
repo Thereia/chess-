@@ -85,8 +85,7 @@ Notes:
     "toY": 4,
     "isFlip": true
   },
-  "flipResult": "Rook",
-  "nextTurn": "black"
+  "flipResult": "Rook"
 }
 ```
 

@@ -45,10 +45,11 @@ class GameRoomTest {
         assertThat(result.isSuccess()).isTrue();
         assertThat(moveResult).isNotNull();
         assertThat(moveResult.isSuccess()).isTrue();
-        assertThat(moveResult.getToX()).isEqualTo("e");
-        assertThat(moveResult.getToY()).isEqualTo(9);
+        assertThat(moveResult.getMove().getToX()).isEqualTo("e");
+        assertThat(moveResult.getMove().getToY()).isEqualTo(9);
         assertThat(gameOver).isNotNull();
-        assertThat(gameOver.getWinnerColor()).isEqualTo("RED");
+        assertThat(gameOver.getWinner()).isEqualTo("red");
+        assertThat(gameOver.getWinnerId()).isEqualTo("red");
         assertThat(gameOver.getReason()).isEqualTo("checkmate");
         assertThat(room.getState().getStatus()).isEqualTo(GameStatus.ENDED);
         assertThat(room.getState().getWinnerColor()).isEqualTo("RED");
@@ -71,7 +72,8 @@ class GameRoomTest {
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getMoveResult()).isNotNull();
         assertThat(result.getGameOver()).isNotNull();
-        assertThat(result.getGameOver().getWinnerColor()).isNull();
+        assertThat(result.getGameOver().getWinner()).isNull();
+        assertThat(result.getGameOver().getWinnerId()).isNull();
         assertThat(result.getGameOver().getReason()).isEqualTo("drawNoCapture");
         assertThat(room.getState().getStatus()).isEqualTo(GameStatus.ENDED);
         assertThat(room.getState().getWinnerColor()).isNull();
@@ -92,7 +94,8 @@ class GameRoomTest {
 
         assertThat(gameOver).isNotNull();
         assertThat(gameOver.getReason()).isEqualTo("resign");
-        assertThat(gameOver.getWinnerColor()).isEqualTo("BLACK");
+        assertThat(gameOver.getWinner()).isEqualTo("black");
+        assertThat(gameOver.getWinnerId()).isEqualTo("black");
         assertThat(room.getState().getStatus()).isEqualTo(GameStatus.ENDED);
         assertThat(room.getState().getWinnerColor()).isEqualTo("BLACK");
         assertThat(room.getState().getEndReason()).isEqualTo("resign");
@@ -111,7 +114,9 @@ class GameRoomTest {
         TimeoutMessage timeout = room.timeout(ChessColor.RED, room.getState().getTurnDeadlineAt());
 
         assertThat(timeout).isNotNull();
-        assertThat(timeout.getColor()).isEqualTo("RED");
+        assertThat(timeout.getLoserId()).isEqualTo("red");
+        assertThat(timeout.getWinnerId()).isEqualTo("black");
+        assertThat(timeout.getReason()).isEqualTo("timeout");
         assertThat(room.getState().getStatus()).isEqualTo(GameStatus.ENDED);
         assertThat(room.getState().getWinnerColor()).isEqualTo("BLACK");
         assertThat(room.getState().getEndReason()).isEqualTo("timeout");

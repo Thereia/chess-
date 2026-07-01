@@ -347,7 +347,7 @@ Important approved API compatibility notes:
 - JSON protocol uses English piece names; Java internals may keep numeric `0-6` codes.
 - Exact hidden captured piece payload difference between capturing side and captured side using `capturedPiece`.
 - `Ready` is functionally required. After `matchSuccess`, the room stays in preparing state until both players send `Ready`, then the server sends `gameStart`.
-- Whether successful `moveResult` should always include `nextTurn` or leave it as ignorable convenience data.
+- Whether failed `moveResult` should keep extra `code` / `message` fields or later trim them for stricter public-interface alignment.
 - Exact domain class fields and responsibilities.
 - Exact client UI representation.
 - Exact game-record file format.

@@ -8,17 +8,20 @@ import java.util.List;
 public final class GameStartMessage {
 
     private final String messageType;
-    private final String roomId;
-    private final String playerColor;
-    private final String firstTurn;
+    private final String redPlayerId;
+    private final String blackPlayerId;
+    private final String yourColor;
+    private final boolean firstHand;
     private final List<InitialPieceMessage> initialBoard;
 
-    public GameStartMessage(String messageType, String roomId, String playerColor, String firstTurn,
+    public GameStartMessage(String messageType, String redPlayerId, String blackPlayerId, String yourColor,
+                            boolean firstHand,
                             List<InitialPieceMessage> initialBoard) {
         this.messageType = messageType;
-        this.roomId = roomId;
-        this.playerColor = playerColor;
-        this.firstTurn = firstTurn;
+        this.redPlayerId = redPlayerId;
+        this.blackPlayerId = blackPlayerId;
+        this.yourColor = yourColor;
+        this.firstHand = firstHand;
         this.initialBoard = initialBoard;
     }
 

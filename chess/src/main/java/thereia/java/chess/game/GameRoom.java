@@ -71,7 +71,7 @@ public final class GameRoom {
 
         MoveResultMessage moveResult = successMoveResult(move, execution, nextState);
         GameOverMessage gameOver = nextState.getStatus() == GameStatus.ENDED
-                ? new GameOverMessage(MessageType.gameOver.name(), nextState.getWinnerColor(), nextState.getEndReason())
+                ? gameOverFor(nextState)
                 : null;
         return new RoomMoveResult(true, moveResult, gameOver);
     }
@@ -111,7 +111,7 @@ public final class GameRoom {
         }
         ChessColor winner = player.getColor().opponent();
         this.state = finishGame(state, colorName(winner), "resign");
-        return new GameOverMessage(MessageType.gameOver.name(), state.getWinnerColor(), state.getEndReason());
+        return gameOverFor(state);
     }
 
     public TimeoutMessage timeout(ChessColor expiredColor, Instant expectedDeadline) {
@@ -127,7 +127,7 @@ public final class GameRoom {
 
         ChessColor winner = expiredColor.opponent();
         this.state = finishGame(state, colorName(winner), "timeout");
-        return new TimeoutMessage(MessageType.timeout.name(), colorName(expiredColor));
+        return new TimeoutMessage(MessageType.timeout.name(), playerIdFor(expiredColor), playerIdFor(winner), "timeout");
     }
 
     private Player playerFor(String playerId) {
@@ -141,9 +141,8 @@ public final class GameRoom {
     }
 
     private RoomMoveResult invalidMove(MoveValidationResult validation, Move move) {
-        MoveResultMessage moveResult = new MoveResultMessage(MessageType.moveResult.name(), false, validation.isValid(),
-                validation.getCode(), validation.getMessage(), move.getFrom().getX(), move.getFrom().getY(),
-                move.getTo().getX(), move.getTo().getY(), null, null, null);
+        MoveResultMessage moveResult = new MoveResultMessage(MessageType.moveResult.name(), false, moveMessage(move),
+                null, validation.isValid(), validation.getCode(), validation.getMessage(), null);
         return new RoomMoveResult(false, moveResult, null);
     }
 
@@ -177,11 +176,13 @@ public final class GameRoom {
     }
 
     private MoveResultMessage successMoveResult(Move move, MoveExecutor.MoveExecution execution, GameState nextState) {
-        return new MoveResultMessage(MessageType.moveResult.name(), true, true, 0, "ok", move.getFrom().getX(),
-                move.getFrom().getY(), move.getTo().getX(), move.getTo().getY(), pieceName(execution.getFlipResult()),
-                pieceName(execution.getCapturedPiece()), nextState.getStatus() == GameStatus.ENDED
-                        ? null
-                        : colorName(nextState.getCurrentTurn()));
+        return new MoveResultMessage(MessageType.moveResult.name(), true, moveMessage(move),
+                pieceName(execution.getFlipResult()), true, 0, "ok", pieceName(execution.getCapturedPiece()));
+    }
+
+    private MoveResultMessage.MoveMessage moveMessage(Move move) {
+        return new MoveResultMessage.MoveMessage(move.getFrom().getX(), move.getFrom().getY(), move.getTo().getX(),
+                move.getTo().getY(), move.isFlipHint());
     }
 
     private String colorName(ChessColor color) {
@@ -193,8 +194,8 @@ public final class GameRoom {
     }
 
     private GameStartMessage gameStartFor(Player player) {
-        return new GameStartMessage(MessageType.gameStart.name(), roomId, colorName(player.getColor()),
-                colorName(ChessColor.RED), initialBoard());
+        return new GameStartMessage(MessageType.gameStart.name(), redPlayer.getPlayerId(), blackPlayer.getPlayerId(),
+                colorNameLower(player.getColor()), player.getColor() == ChessColor.RED, initialBoard());
     }
 
     private List<GameStartMessage.InitialPieceMessage> initialBoard() {
@@ -211,5 +212,25 @@ public final class GameRoom {
             }
         }
         return pieces;
+    }
+
+    private GameOverMessage gameOverFor(GameState finishedState) {
+        if (finishedState.getWinnerColor() == null) {
+            return new GameOverMessage(MessageType.gameOver.name(), null, finishedState.getEndReason(), null);
+        }
+        ChessColor winner = ChessColor.valueOf(finishedState.getWinnerColor());
+        return new GameOverMessage(MessageType.gameOver.name(), colorNameLower(winner), finishedState.getEndReason(),
+                playerIdFor(winner));
+    }
+
+    private String playerIdFor(ChessColor color) {
+        if (color == null) {
+            return null;
+        }
+        return color == ChessColor.RED ? redPlayer.getPlayerId() : blackPlayer.getPlayerId();
+    }
+
+    private String colorNameLower(ChessColor color) {
+        return color == null ? null : color.name().toLowerCase();
     }
 }

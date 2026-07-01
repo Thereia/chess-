@@ -6,11 +6,15 @@ import lombok.Getter;
 public final class TimeoutMessage {
 
     private final String messageType;
-    private final String color;
+    private final String loserId;
+    private final String winnerId;
+    private final String reason;
 
-    public TimeoutMessage(String messageType, String color) {
+    public TimeoutMessage(String messageType, String loserId, String winnerId, String reason) {
         this.messageType = messageType;
-        this.color = color;
+        this.loserId = loserId;
+        this.winnerId = winnerId;
+        this.reason = reason;
     }
 
 }

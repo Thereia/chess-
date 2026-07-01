@@ -362,8 +362,7 @@ Successful move, broadcast to both players:
     "isFlip": true
   },
   "flipResult": "Rook",
-  "capturedPiece": null,
-  "nextTurn": "black"
+  "capturedPiece": null
 }
 ```
 
@@ -396,6 +395,7 @@ Hidden information rule:
 - The captured side receives `capturedPiece: "NULL"`.
 - Therefore the server may need to send different `moveResult` payloads to the two players.
 - Strict public-interface clients can ignore `capturedPiece`; the board can still be updated from `move`.
+- `nextTurn` is no longer sent; clients should derive turn flow from accepted moves, `gameStart`, and end messages.
 
 ### 8.4 timeout
 
