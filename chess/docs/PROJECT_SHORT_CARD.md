@@ -28,6 +28,7 @@ Prepare for frontend integration on top of the now-complete login + match + room
 - Room-dependent actions now require login first; unauthenticated requests receive `error code=3002`.
 - `GameWebSocketHandler` now handles `startMatch`, `Ready`, `move`, and `Resign`, and returns `3001` when a player sends room-dependent messages before entering a room.
 - `GameWebSocketHandler` now starts a server-side per-turn timeout after both players are ready, resets it after accepted moves, and ignores stale timer tasks through the room's deadline check.
+- Finished-game room cleanup is now in place for the single-room model: move-triggered `gameOver`, `resign`, `timeout`, and disconnect all clear the active room so players can rematch cleanly.
 - Core outbound message fields now follow the public interface more closely: `loginResult` carries auth result, `matchSuccess` uses real `userId` / `nickName`, `roomInfo` uses `opponentReady`, `gameStart` uses `redPlayerId` / `blackPlayerId` / `yourColor` / `firstHand`, `gameOver` uses `winner` / `winnerId`, and `timeout` uses `loserId` / `winnerId` / `reason`.
 - The only intentional message extensions still kept are `moveResult.capturedPiece` and `initialBoard[].color`.
 - Hidden capture visibility is now implemented through different successful `moveResult` payloads for attacker and defender.
@@ -36,9 +37,9 @@ Prepare for frontend integration on top of the now-complete login + match + room
 
 ## Immediate Actions
 1. Keep the frontend-facing final API doc aligned with the new login/register flow.
-2. Decide whether failed `moveResult` should keep extra `code` / `message` fields or whether we should trim further for stricter public-interface alignment.
-3. Add any missing room cleanup behavior after disconnect / finished game if we need it before frontend联调.
-4. Prepare for frontend联调 using the now-complete root-path + `register/Login` + `loginResult` + `matchSuccess` + `roomInfo` + `Ready` + `gameStart` + `move` + `Resign` + `timeout` flow.
+2. Resolve the remaining WebSocket path mismatch: current code listens on `/ws`, while project docs/tests still expect root `/`.
+3. Decide whether failed `moveResult` should keep extra `code` / `message` fields or whether we should trim further for stricter public-interface alignment.
+4. Prepare for frontend联调 using the current `register/Login` + `loginResult` + `matchSuccess` + `roomInfo` + `Ready` + `gameStart` + `move` + `Resign` + `timeout` flow.
 
 ## Completion Criteria
 - Two clients can register/login, match, receive `matchSuccess`, observe `roomInfo` during prepare stage, both send `Ready`, receive `gameStart`, and then reach room-level `move`, `resign`, and timeout settlement through WebSocket.

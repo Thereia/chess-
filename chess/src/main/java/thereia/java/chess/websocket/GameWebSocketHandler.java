@@ -13,6 +13,7 @@ import thereia.java.chess.auth.UserAccount;
 import thereia.java.chess.auth.UserStore;
 import thereia.java.chess.board.Position;
 import thereia.java.chess.game.GameRoom;
+import thereia.java.chess.game.GameStatus;
 import thereia.java.chess.game.MatchResult;
 import thereia.java.chess.game.ReadyResult;
 import thereia.java.chess.game.RoomMoveResult;
@@ -124,10 +125,9 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        sessionRegistry.remove(session.getId());
-
         Optional<UserAccount> user = sessionRegistry.userOf(session.getId());
         if (user.isEmpty()) {
+            sessionRegistry.remove(session.getId());
             return;
         }
         String userId = user.get().getUserId();
@@ -136,16 +136,20 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
 
         Optional<GameRoom> room = roomManager.roomForPlayer(userId);
         if (room.isEmpty()) {
+            sessionRegistry.remove(session.getId());
             return;
         }
         GameRoom gameRoom = room.get();
 
-        cancelTimeout(gameRoom.getRoomId());
-
         try {
-            GameOverMessage gameOver = gameRoom.resign(userId);
-            sendToRoom(gameRoom, gameOver);
+            if (gameRoom.getState().getStatus() == GameStatus.PLAYING) {
+                GameOverMessage gameOver = gameRoom.resign(userId);
+                send(opponentSession(gameRoom, userId), gameOver);
+            }
         } catch (Exception ignored) {
+        } finally {
+            finishRoom(gameRoom);
+            sessionRegistry.remove(session.getId());
         }
     }
 
@@ -239,8 +243,8 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
         send(session, result.getActorMoveResult());
         send(opponentSession(gameRoom, playerId), result.getOpponentMoveResult());
         if (result.getGameOver() != null) {
-            cancelTimeout(gameRoom.getRoomId());
             sendToRoom(gameRoom, result.getGameOver());
+            finishRoom(gameRoom);
             return;
         }
         rescheduleTimeout(gameRoom);
@@ -257,8 +261,8 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
         }
         GameRoom gameRoom = room.orElseThrow();
         GameOverMessage gameOver = gameRoom.resign(playerId);
-        cancelTimeout(gameRoom.getRoomId());
         sendToRoom(gameRoom, gameOver);
+        finishRoom(gameRoom);
     }
 
     private Optional<GameRoom> roomForPlayer(WebSocketSession session, String playerId) throws IOException {
@@ -317,11 +321,16 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
             if (timeoutMessage == null) {
                 return;
             }
-            cancelTimeout(room.getRoomId());
             sendToRoom(room, timeoutMessage);
+            finishRoom(room);
         } catch (IOException exception) {
             throw new IllegalStateException("failed to send timeout message", exception);
         }
+    }
+
+    private void finishRoom(GameRoom room) {
+        cancelTimeout(room.getRoomId());
+        roomManager.clearActiveRoom(room.getRoomId());
     }
 
     private void send(WebSocketSession session, Object payload) throws IOException {

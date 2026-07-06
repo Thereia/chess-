@@ -18,4 +18,12 @@
   "userId" : "player2",
   "passWord" : "123456",
   "nickName" : "黑方"
+}, {
+  "userId" : "pia",
+  "passWord" : "123456",
+  "nickName" : "pia"
+}, {
+  "userId" : "tia",
+  "passWord" : "123456",
+  "nickName" : "tia"
 } ]

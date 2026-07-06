@@ -28,6 +28,9 @@ public final class RoomManager {
     }
 
     public MatchResult startMatch(UserAccount user) {
+        if (activeRoom != null && activeRoom.getState().getStatus() == GameStatus.ENDED) {
+            activeRoom = null;
+        }
         if (activeRoom != null && roomForPlayer(user.getUserId()).isPresent()) {
             return new MatchResult(true, null, Optional.of(activeRoom));
         }
@@ -71,5 +74,11 @@ public final class RoomManager {
 
     public UserAccount getWaitingUser() {
         return waitingUser;
+    }
+
+    public void clearActiveRoom(String roomId) {
+        if (activeRoom != null && activeRoom.getRoomId().equals(roomId)) {
+            activeRoom = null;
+        }
     }
 }

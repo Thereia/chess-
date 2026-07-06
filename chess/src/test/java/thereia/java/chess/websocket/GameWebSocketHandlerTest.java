@@ -253,6 +253,53 @@ class GameWebSocketHandlerTest {
     }
 
     @Test
+    void allowsPlayersToRematchAfterResign() throws Exception {
+        SessionRegistry sessionRegistry = new SessionRegistry();
+        RoomManager roomManager = new RoomManager(new RuleEngine(), new MoveExecutor(), new GameRecorder(dir));
+        UserStore userStore = new UserStore(dir.resolve("users.json"));
+        GameWebSocketHandler handler = new GameWebSocketHandler(sessionRegistry, roomManager, userStore);
+        WebSocketSession sessionA = mock(WebSocketSession.class);
+        WebSocketSession sessionB = mock(WebSocketSession.class);
+
+        when(sessionA.getId()).thenReturn("A");
+        when(sessionB.getId()).thenReturn("B");
+
+        handler.afterConnectionEstablished(sessionA);
+        handler.afterConnectionEstablished(sessionB);
+        register(handler, sessionA, "A", "A");
+        register(handler, sessionB, "B", "B");
+
+        handler.handleTextMessage(sessionA, new TextMessage("{\"messageType\":\"startMatch\"}"));
+        handler.handleTextMessage(sessionB, new TextMessage("{\"messageType\":\"startMatch\"}"));
+        handler.handleTextMessage(sessionA, new TextMessage("{\"messageType\":\"Ready\"}"));
+        handler.handleTextMessage(sessionB, new TextMessage("{\"messageType\":\"Ready\"}"));
+        handler.handleTextMessage(sessionA, new TextMessage("{\"messageType\":\"Resign\"}"));
+
+        handler.handleTextMessage(sessionA, new TextMessage("{\"messageType\":\"startMatch\"}"));
+        handler.handleTextMessage(sessionB, new TextMessage("{\"messageType\":\"startMatch\"}"));
+        handler.handleTextMessage(sessionA, new TextMessage("{\"messageType\":\"Ready\"}"));
+        handler.handleTextMessage(sessionB, new TextMessage("{\"messageType\":\"Ready\"}"));
+
+        ArgumentCaptor<TextMessage> captorA = ArgumentCaptor.forClass(TextMessage.class);
+        ArgumentCaptor<TextMessage> captorB = ArgumentCaptor.forClass(TextMessage.class);
+        verify(sessionA, atLeastOnce()).sendMessage(captorA.capture());
+        verify(sessionB, atLeastOnce()).sendMessage(captorB.capture());
+
+        assertThat(captorA.getAllValues()).extracting(TextMessage::getPayload)
+                .filteredOn(payload -> payload.contains("\"messageType\":\"gameStart\""))
+                .hasSize(2);
+        assertThat(captorB.getAllValues()).extracting(TextMessage::getPayload)
+                .filteredOn(payload -> payload.contains("\"messageType\":\"gameStart\""))
+                .hasSize(2);
+        assertThat(captorA.getAllValues()).extracting(TextMessage::getPayload)
+                .noneMatch(payload -> payload.contains("\"messageType\":\"error\"")
+                        && payload.contains("\"code\":5000"));
+        assertThat(captorB.getAllValues()).extracting(TextMessage::getPayload)
+                .noneMatch(payload -> payload.contains("\"messageType\":\"error\"")
+                        && payload.contains("\"code\":5000"));
+    }
+
+    @Test
     void returnsRoomNotFoundWhenPlayerMovesWithoutRoom() throws Exception {
         SessionRegistry sessionRegistry = new SessionRegistry();
         RoomManager roomManager = new RoomManager(new RuleEngine(), new MoveExecutor(), new GameRecorder(dir));

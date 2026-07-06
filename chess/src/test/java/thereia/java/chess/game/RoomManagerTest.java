@@ -68,6 +68,24 @@ class RoomManagerTest {
         assertThat(room.getState().getTurnStartedAt()).isEqualTo(now.plusSeconds(1));
     }
 
+    @Test
+    void clearActiveRoomAllowsSamePlayersToMatchAgain() {
+        RoomManager roomManager = roomManager();
+        GameRoom firstRoom = roomManager.startMatch(user("A", "Alice")).getRoom().orElse(null);
+        assertThat(firstRoom).isNull();
+
+        firstRoom = roomManager.startMatch(user("B", "Bob")).getRoom().orElseThrow();
+        roomManager.clearActiveRoom(firstRoom.getRoomId());
+
+        MatchResult waitingAgain = roomManager.startMatch(user("A", "Alice"));
+        MatchResult matchedAgain = roomManager.startMatch(user("B", "Bob"));
+
+        assertThat(waitingAgain.isMatched()).isFalse();
+        assertThat(matchedAgain.isMatched()).isTrue();
+        assertThat(matchedAgain.getRoom()).isPresent();
+        assertThat(matchedAgain.getRoom().orElseThrow()).isNotSameAs(firstRoom);
+    }
+
     private RoomManager roomManager() {
         return new RoomManager(new RuleEngine(), new MoveExecutor(), new GameRecorder(dir));
     }

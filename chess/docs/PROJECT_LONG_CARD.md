@@ -344,6 +344,10 @@ Important approved API compatibility notes:
 - Task 7 added `GameRecorderTest` and `GameRoomTest` and passed focused verification with `mvn -q "-Dtest=MoveRecordTest,MoveExecutorTest,GameRecorderTest,GameRoomTest" test` through the temporary `subst X:` path.
 - Task 8 completed the connected WebSocket room flow: `RoomManager` matchmaking, required `Ready` stage, `matchSuccess`, `roomInfo`, `gameStart`, server-side timeout scheduling, and timeout reset/ignore-stale behavior in `GameWebSocketHandler`.
 - Task 8 focused verification passed with `mvn -q "-Dtest=GameWebSocketHandlerTest,RoomManagerTest,GameRoomTest,ChessApplicationTests" test` through the temporary `subst X:` path.
+- Added minimal single-room lifecycle cleanup: finished rooms are now cleared after move-triggered `gameOver`, `resign`, `timeout`, and disconnect cleanup, so the same players can rematch without getting stuck in the previous room state.
+- Added regression tests covering `RoomManager.clearActiveRoom(...)` and rematch-after-resign flow through `GameWebSocketHandler`.
+- Latest focused verification for the room-cleanup change passed with `mvn -q "-Dtest=RoomManagerTest,GameWebSocketHandlerTest" test` through the temporary `subst X:` path.
+- Wider focused verification for `GameWebSocketHandlerTest,GameRoomTest,RoomManagerTest,WebSocketConfigTest,ChessApplicationTests` still shows the pre-existing `/ws` vs `/` mismatch in `WebSocketConfigTest`; this is unrelated to the room-cleanup change.
 - Current local environment note: on Windows with the present Oracle JDK, `javac` classpath resolution under the real project path is unreliable for tests; using temporary `subst X:` mapping remains the stable workaround.
 
 ## Decisions Not Final Yet
