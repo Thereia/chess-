@@ -58,6 +58,7 @@
             <section class="game-info">
                 <div class="info-card">
                     <h3>游戏状态</h3>
+                    <div id="usernameDisplay" style="font-weight: bold; color: #8b4513; margin-bottom: 8px; font-size: 16px;">当前用户: 未登录</div>
                     <div id="gameStatus">未开始</div>
                     <div id="currentTurn">等待匹配</div>
                     <div id="yourColor">你的颜色: 未知</div>
@@ -68,6 +69,19 @@
                     <div id="message">点击"开始匹配"寻找对手</div>
                 </div>
                 <div class="info-card">
+                    <h3>已吃棋子</h3>
+                    <div class="captured-container">
+                        <div class="captured-line">
+                            <span class="captured-label red-label">红方被吃:</span>
+                            <div id="capturedRedPieces" class="captured-pool"></div>
+                        </div>
+                        <div class="captured-line">
+                            <span class="captured-label black-label">黑方被吃:</span>
+                            <div id="capturedBlackPieces" class="captured-pool"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card">
                     <h3>走子记录</h3>
                     <div id="moveLog"></div>
                 </div>
@@ -75,6 +89,18 @@
         </div>
     </section>
 </main>
+
+<div id="gameOverModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-icon" id="modalIcon">🏆</div>
+        <h2 id="modalTitle">对局结束</h2>
+        <p id="modalBody">恭喜你获得了胜利！</p>
+        <div class="modal-buttons">
+            <button id="modalRematchButton" class="btn primary">重新匹配</button>
+            <button id="modalCloseButton" class="btn secondary">关闭</button>
+        </div>
+    </div>
+</div>
 <script src="app.js"></script>
 </body>
 </html>

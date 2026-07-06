@@ -31,6 +31,10 @@ let deadlineTime = null;
 let heartbeatInterval = null;
 let loggedInUser = null;
 let roomId = null;
+let capturedRedPieces = [];
+let capturedBlackPieces = [];
+let currentMyName = '';
+let currentOpponentName = '';
 
 const loginScreen = document.getElementById('loginScreen');
 const gameScreen = document.getElementById('gameScreen');
@@ -43,6 +47,61 @@ const messageEl = document.getElementById('message');
 const moveLogEl = document.getElementById('moveLog');
 const redPlayerEl = document.getElementById('redPlayer');
 const blackPlayerEl = document.getElementById('blackPlayer');
+const usernameDisplay = document.getElementById('usernameDisplay');
+
+const gameOverModal = document.getElementById('gameOverModal');
+const modalIcon = document.getElementById('modalIcon');
+const modalTitle = document.getElementById('modalTitle');
+const modalBody = document.getElementById('modalBody');
+const modalRematchButton = document.getElementById('modalRematchButton');
+const modalCloseButton = document.getElementById('modalCloseButton');
+
+if(modalCloseButton){
+modalCloseButton.addEventListener('click', () => {
+    gameOverModal.classList.remove('active');
+});
+}
+
+if(modalRematchButton){
+modalRematchButton.addEventListener('click', () => {
+    gameOverModal.classList.remove('active'); // 先关闭弹窗
+	send({ messageType: 'Resign' });
+	roomId = null;
+	gameStatus = 'waiting';
+	myReady = false;
+    opponentReady = false;
+    selectedCell = null;
+    boardState = {};
+	capturedRedPieces = [];
+	capturedBlackPieces = [];
+	
+	const redPool = document.getElementById('capturedRedPieces');
+    const blackPool = document.getElementById('capturedBlackPieces');
+    if (redPool) redPool.innerHTML = '';
+    if (blackPool) blackPool.innerHTML = '';
+
+	moveLogEl.innerHTML = '';
+	    board.innerHTML = '';
+	    renderEmptyBoard();
+		
+	const readyBtn = document.getElementById('readyButton');
+	    if (readyBtn) {
+	        readyBtn.disabled = true; // 匹配中时，准备按钮应当是禁用状态
+	        readyBtn.textContent = '准备';
+	    }
+	
+	setTimeout(() =>{
+	send({ 
+	        messageType: 'startMatch',
+	        roomId: null 
+	    }); 
+	    
+	    statusLine.textContent = '重新匹配中...';
+	    // 激活取消匹配按钮，禁用开始匹配按钮
+	    setButtonStates({ startMatch: false, cancelMatch: true });
+		}, 100);
+});
+}
 
 document.getElementById('tabLogin').addEventListener('click', () => {
     document.getElementById('tabLogin').classList.add('active');
@@ -200,7 +259,11 @@ function handleLoginResult(data) {
     if (data.success) {
         loggedInUser = { userId: data.userId, nickName: data.nickName };
         showLoginStatus(`登录成功！欢迎, ${data.nickName}`, 'success');
-        setTimeout(() => {
+		if (usernameDisplay) {
+            usernameDisplay.textContent = `当前用户: ${data.nickName} (${data.userId})`;
+		}
+		
+		setTimeout(() => {
             loginScreen.classList.remove('active');
             gameScreen.classList.add('active');
             startHeartbeat();
@@ -213,19 +276,20 @@ function handleLoginResult(data) {
 
 function handleMatchSuccess(data) {
     roomId = data.roomId;
-    const opponentName = data.opponentNickName;
-
+	
+	
+	currentMyName = loggedInUser.nickName;
+	currentOpponentName = data.opponentNickName || data.opponentNickname || data.opponentName || data.opponentId || '对手';
+	
     statusLine.textContent = '匹配成功！';
     currentTurnEl.textContent = '等待双方准备';
-    messageEl.textContent = `对手: ${opponentName}，请点击"准备"`;
-
-    if (myColor === 'red') {
-        redPlayerEl.textContent = `红方: ${loggedInUser.nickName}`;
-        blackPlayerEl.textContent = `黑方: ${opponentName}`;
-    } else {
-        redPlayerEl.textContent = `红方: ${opponentName}`;
-        blackPlayerEl.textContent = `黑方: ${loggedInUser.nickName}`;
-    }
+    messageEl.textContent = `对手: ${currentOpponentName}，请点击"准备"`;
+	
+	
+	if (redPlayerEl) redPlayerEl.textContent = `红方: 准备中...`;
+    if (blackPlayerEl) blackPlayerEl.textContent = `黑方: 准备中...`;
+	
+	
 
     gameStatus = 'preparing';
     setButtonStates({ startMatch: false, cancelMatch: false, ready: true });
@@ -237,18 +301,31 @@ function handleRoomInfo(data) {
 }
 
 function handleGameStart(data) {
-    myColor = data.yourColor;
-    currentTurn = data.firstHand ? 'red' : 'black';
+    myColor = data.yourColor ? data.yourColor.toLowerCase() : 'red';
+    currentTurn = 'red';
     gameStatus = 'playing';
 
     yourColorEl.textContent = `你的颜色: ${myColor === 'red' ? '红方' : '黑方'}`;
     statusLine.textContent = '游戏开始！';
     currentTurnEl.textContent = `当前回合: ${currentTurn === 'red' ? '红方' : '黑方'}`;
-    messageEl.textContent = currentTurn === myColor ? '轮到你走棋' : '等待对手走棋';
 
     setButtonStates({ ready: false, resign: true });
 
-    updateTurnIndicator();
+	if (data.opponentNickName || data.opponentNickname || data.opponentName) {
+	        currentOpponentName = data.opponentNickName || data.opponentNickname || data.opponentName;
+	    }
+	
+	if(myColor === 'red'){
+	if (redPlayerEl) redPlayerEl.textContent = `红方: ${currentMyName}`;
+	if (blackPlayerEl) blackPlayerEl.textContent = `黑方: ${currentOpponentName}`;
+	}
+	else{
+		if (redPlayerEl) redPlayerEl.textContent = `红方: ${currentOpponentName}`;
+		        if (blackPlayerEl) blackPlayerEl.textContent = `黑方: ${currentMyName}`;
+	}
+	
+	messageEl.textContent = currentTurn === myColor ? '轮到你走棋' : '等待对手走棋';
+	updateTurnIndicator();
     renderBoard(data.initialBoard);
     startTimer();
 }
@@ -268,13 +345,61 @@ function handleMoveResult(data) {
     const from = `${move.fromX}${move.fromY}`;
     const to = `${move.toX}${move.toY}`;
 
-    updateBoardState(from, to, data.flipResult);
+	if (boardState[to]) {
+		const targetY = parseInt(move.toY);
+	    let victimColor = boardState[to].color ? boardState[to].color.toLowerCase() : (targetY >= 5 ? 'black' : 'red');
+		const isTargetHidden = (boardState[to].visible === false || boardState[to].type === 'reverse');
+		let finalType = data.capturedPiece || (data.move && data.move.capturedPiece) || move.capturedPiece || data.piece;
+		if (!finalType || finalType === 'reverse'){
+			if(!isTargetHidden) finalType = boardState[to].type;
+			else finalType = 'HIDDEN_CAPTURED';
+		}
+		
+		if(finalType){
+			const poolType = finalType === 'HIDDEN_CAPTURED' ? 'HIDDEN_CAPTURED' : finalType.toUpperCase();
+		    if (victimColor === 'red') {
+		        capturedRedPieces.push(poolType);
+	        } else if (victimColor === 'black'){
+                capturedBlackPieces.push(poolType);
+			}
+        }
+		let hasRedKing = false;
+		    let hasBlackKing = false;
+		    for (const coord in boardState) {
+		        const p = boardState[coord];
+		        if (p.visible) {
+		            if (p.type === 'KING' && p.color === 'red') hasRedKing = true;
+		            if (p.type === 'KING' && p.color === 'black') hasBlackKing = true;
+		        }
+		    }
+
+		    // 如果发现有任何一方的将帅不在了，且游戏还在进行中
+		    if (gameStatus === 'playing') {
+		        if (!hasRedKing || !hasBlackKing) {
+		            gameStatus = 'ended';
+		            clearTimers();
+		            setButtonStates({ resign: false });
+		            
+		            // 判断当前玩家的输赢
+		            const amIRed = (myColor === 'red');
+		            const isWin = (!hasBlackKing && amIRed) || (!hasRedKing && !amIRed);
+		            
+		            if (isWin) {
+		                messageEl.textContent = '恭喜你获胜！';
+		                showGameOverModal('WIN', '你成功击杀了敌方首领，赢得了胜利！');
+		            } else {
+		                messageEl.textContent = '你输了';
+		                showGameOverModal('LOSE', '您的将帅已被击杀，遗憾败北！');
+		            }
+		        }
+		    }
+		renderCapturedPieces();
+		delete boardState[to];
+	}
+    
+	updateBoardState(from, to, data.flipResult);
 
     addMoveLog(move, data.flipResult, data.capturedPiece);
-
-    if (data.capturedPiece) {
-        delete boardState[to];
-    }
 
     if (data.currentTurn) {
         currentTurn = data.currentTurn.toLowerCase();
@@ -293,17 +418,65 @@ function handleTimeout(data) {
     gameStatus = 'ended';
     clearTimers();
     setButtonStates({ resign: false });
+	
+	if (data.loserId === loggedInUser.userId) {
+		showGameOverModal('LOSE', '由于你思索时间过长，遗憾超时输掉了对局。');
+		messageEl.textContent = '你超时了，游戏结束';
+    } else {
+		showGameOverModal('WIN', '由于对手思索超时，恭喜你获得了本局的胜利！');
+		messageEl.textContent = '对手超时，你获胜！';
+    }
+}
+
+function showGameOverModal(resultType, description) {
+	if (!gameOverModal) return;
+	// 根据不同的对局结果类型，更换对应的图标与标题颜色
+    switch (resultType) {
+        case 'WIN':
+            modalIcon.textContent = '🏆';
+            modalTitle.textContent = '对局胜利';
+            modalTitle.style.color = '#d32f2f'; // 鲜艳红
+            break;
+        case 'LOSE':
+            modalIcon.textContent = '🍂';
+            modalTitle.textContent = '对局失败';
+            modalTitle.style.color = '#757575'; // 失败灰
+            break;
+        case 'DRAW':
+            modalIcon.textContent = '🤝';
+            modalTitle.textContent = '握手言和';
+            modalTitle.style.color = '#8b4513'; // 经典棕
+            break;
+        case 'ABORT':
+            modalIcon.textContent = '🔌';
+            modalTitle.textContent = '对局中断';
+            modalTitle.style.color = '#e65100'; // 警示橙
+            break;
+        default:
+            modalIcon.textContent = '🏁';
+            modalTitle.textContent = '游戏结束';
+            modalTitle.style.color = '#8b4513';
+    }
+
+    modalBody.textContent = description;
+    gameOverModal.classList.add('active'); // 激活弹窗
 }
 
 function handleGameOver(data) {
     statusLine.textContent = '游戏结束';
+	gameStatus = 'ended';
+	clearTimers();
+    setButtonStates({ resign: false });
 
     if (!data.winner) {
         messageEl.textContent = '和棋！';
+		showGameOverModal('DRAW', '双方握手言和，本局平局。');
     } else if (data.winnerId === loggedInUser.userId) {
         messageEl.textContent = '恭喜你获胜！';
+		showGameOverModal('WIN', '你成功击败了对手，赢得了本局胜利！');
     } else {
         messageEl.textContent = '你输了';
+		showGameOverModal('LOSE', '棋差一招，遗憾败北，再接再厉！');
     }
 
     gameStatus = 'ended';
@@ -317,10 +490,17 @@ function handleError(data) {
 }
 
 function renderBoard(initialBoard) {
+	boardState = {};
+	capturedRedPieces = [];
+	capturedBlackPieces = [];
+	const redPool = document.getElementById('capturedRedPieces');
+	const blackPool = document.getElementById('capturedBlackPieces');
+	if (redPool) redPool.innerHTML = '';
+    if (blackPool) blackPool.innerHTML = '';
     board.replaceChildren();
-    boardState = {};
 
     for (let y = 9; y >= 0; y--) {
+        // 创建正常的作战格子
         for (let col = 0; col < 9; col++) {
             const x = String.fromCharCode('a'.charCodeAt(0) + col);
             const cell = document.createElement('div');
@@ -330,6 +510,19 @@ function renderBoard(initialBoard) {
             cell.dataset.coord = `${x}${y}`;
             cell.addEventListener('click', () => handleCellClick(cell));
             board.appendChild(cell);
+        }
+
+        // 同样在 y=5 行后完美插入 2 行河道格
+        if (y === 5) {
+            for (let r = 0; r < 2; r++) {
+                for (let col = 0; col < 9; col++) {
+                    const riverCell = document.createElement('div');
+                    riverCell.className = 'cell river-cell';
+                    riverCell.dataset.riverRow = String(r);
+                    riverCell.dataset.riverCol = String(col);
+                    board.appendChild(riverCell);
+                }
+            }
         }
     }
 
@@ -355,22 +548,33 @@ function renderBoard(initialBoard) {
 }
 
 function renderBoardFromState() {
-    const cells = board.querySelectorAll('.cell');
+    // 只清理有坐标的作战格子，绝对不能清掉或改变 .river-cell 的结构
+    const cells = board.querySelectorAll('.cell[data-coord]');
     cells.forEach(cell => {
-        const key = `${cell.dataset.x}${cell.dataset.y}`;
-        const piece = boardState[key];
+        cell.replaceChildren();
+        cell.classList.remove('selected', 'suggested');
+    });
 
-        cell.innerHTML = '';
-
-        if (piece) {
+    // 重新把棋子放上棋盘
+    for (const coord in boardState) {
+        const p = boardState[coord];
+        const cell = board.querySelector(`.cell[data-coord="${coord}"]`);
+        if (cell) {
             const pieceEl = document.createElement('div');
-            pieceEl.className = `piece ${piece.color}${piece.visible ? '' : ' hidden'}`;
-            pieceEl.textContent = piece.visible
-                ? (piece.color === 'red' ? PIECE_SYMBOLS[piece.type] : BLACK_SYMBOLS[piece.type])
-                : '';
+            pieceEl.className = `piece ${p.color}`;
+            
+			
+			
+            if (p.visible) {
+                const symbols = p.color === 'red' ? PIECE_SYMBOLS : BLACK_SYMBOLS;
+                pieceEl.textContent = symbols[p.type] || p.type;
+            } else {
+                pieceEl.classList.add('hidden-piece');
+                pieceEl.textContent = '?'; 
+            }
             cell.appendChild(pieceEl);
         }
-    });
+    }
 }
 
 function updateBoardState(from, to, flipResult) {
@@ -389,6 +593,8 @@ function handleCellClick(cell) {
     if (gameStatus !== 'playing' || currentTurn !== myColor) {
         return;
     }
+	
+	board.querySelectorAll('.cell.suggested').forEach(c => c.classList.remove('suggested'));
 
     if (!selectedCell) {
         const key = `${cell.dataset.x}${cell.dataset.y}`;
@@ -397,6 +603,76 @@ function handleCellClick(cell) {
         if (piece && piece.color === myColor) {
             selectedCell = cell;
             cell.classList.add('selected');
+			
+			const currentXChar = cell.dataset.x;
+			const currentX = currentXChar.charCodeAt(0) - 97;
+			const currentY = Number(cell.dataset.y);
+			
+			const markCell = (nx, ny) =>{
+				if (nx >= 0 && nx <= 8 && ny >= 0 && ny <= 9){
+					const targetXStr = String.fromCharCode(97 + nx);
+					const targetCell = board.querySelector(`.cell[data-coord="${targetXStr}${ny}"]`);
+					if (targetCell) targetCell.classList.add('suggested');
+				}
+			};
+			const pType = piece.visible ? piece.type : 'PAWN';
+			switch (pType){
+				case 'KING':
+					markCell(currentX + 1, currentY);
+					markCell(currentX, currentY);
+					markCell(currentX, currentY + 1);
+					markCell(currentX, currentY - 1);
+					break;
+					
+				case 'PAWN':
+					if (piece.color === 'red') {
+					    markCell(currentX, currentY + 1); // 红兵向前
+	                    if (currentY >= 5) { // 已过河
+			                markCell(currentX - 1, currentY);
+                            markCell(currentX + 1, currentY);
+	                    }
+				    } else {
+	                        markCell(currentX, currentY - 1); // 黑卒向前
+			                if (currentY <= 4) { // 已过河
+			                    markCell(currentX - 1, currentY);
+			                    markCell(currentX + 1, currentY);
+		                    }
+		            }
+	                break;
+				
+				case 'KNIGHT':
+					const knightOffsets = [
+					    [-1, -2], [1, -2], [-2, -1], [2, -1],
+	                    [-2, 1], [2, 1], [-1, 2], [1, 2]
+		            ];
+					knightOffsets.forEach(([dx, dy]) => markCell(currentX + dx, currentY + dy));
+					break;
+					
+				case 'BISHOP':
+					markCell(currentX + 2, currentY + 2);
+					markCell(currentX + 2, currentY - 2);
+					markCell(currentX - 2, currentY + 2);
+					markCell(currentX - 2, currentY - 2);
+					break;
+					
+				case 'GUARD':
+					markCell(currentX + 1, currentY + 1);
+					markCell(currentX + 1, currentY - 1);
+					markCell(currentX - 1, currentY + 1);
+					markCell(currentX - 1, currentY - 1);
+					break;
+				
+				case 'ROOK':
+					
+				case 'CANNON':
+					for (let i = 0; i < 9; i++){
+						if (i !== currentX) markCell(i, currentY);
+					}
+					for (let j = 0; j < 10; j++){
+						if (j !== currentY) markCell(currentX, j);
+					}
+					break;
+			}
         }
         return;
     }
@@ -426,11 +702,19 @@ function addMoveLog(move, flipResult, capturedPiece) {
     const to = `${move.toX}${move.toY}`;
     let text = `${from} -> ${to}`;
 
-    if (flipResult) {
-        text += ` (翻出: ${PIECE_SYMBOLS[flipResult]})`;
+	const currentSymbols = currentTurn === 'black' ? BLACK_SYMBOLS : PIECE_SYMBOLS;
+    
+	if (flipResult) {
+		const flipText = currentSymbols[flipResult] || flipResult;
+        text += ` (翻出: ${flipText})`;
     }
     if (capturedPiece) {
-        text += ` (吃: ${PIECE_SYMBOLS[capturedPiece]})`;
+		const targetY = parseInt(move.toY);
+		        const victimColor = targetY >= 5 ? 'black' : 'red'; // 粗略根据原初始半场判断（或跟随规则）
+		        const victimSymbols = victimColor === 'black' ? BLACK_SYMBOLS : PIECE_SYMBOLS;
+		        
+		        const capturedText = victimSymbols[capturedPiece] || currentSymbols[capturedPiece] || capturedPiece;
+        text += ` (吃: ${capturedText})`;
     }
 
     const div = document.createElement('div');
@@ -507,6 +791,17 @@ function logout() {
     myColor = null;
     gameStatus = 'waiting';
     boardState = {};
+	
+	if (usernameDisplay) {
+        usernameDisplay.textContent = '当前用户: 未登录';
+    }
+	
+	capturedRedPieces = [];
+	capturedBlackPieces = [];
+	const redPool = document.getElementById('capturedRedPieces');
+	const blackPool = document.getElementById('capturedBlackPieces');
+    if (redPool) redPool.innerHTML = '';
+    if (blackPool) blackPool.innerHTML = '';
 
     gameScreen.classList.remove('active');
     loginScreen.classList.add('active');
@@ -529,6 +824,7 @@ function logout() {
 function renderEmptyBoard() {
     board.replaceChildren();
     for (let y = 9; y >= 0; y--) {
+        // 先渲染正常的行
         for (let col = 0; col < 9; col++) {
             const x = String.fromCharCode('a'.charCodeAt(0) + col);
             const cell = document.createElement('div');
@@ -539,7 +835,54 @@ function renderEmptyBoard() {
             cell.addEventListener('click', () => handleCellClick(cell));
             board.appendChild(cell);
         }
+        
+        // 当渲染完 y=5 行后，紧接着在它下方插入 2 行独立的河道
+        if (y === 5) {
+            for (let r = 0; r < 2; r++) {
+                for (let col = 0; col < 9; col++) {
+                    const riverCell = document.createElement('div');
+                    riverCell.className = 'cell river-cell';
+                    riverCell.dataset.riverRow = String(r);
+                    riverCell.dataset.riverCol = String(col);
+                    board.appendChild(riverCell);
+                }
+            }
+        }
     }
+}
+
+function renderCapturedPieces() {
+    const redPool = document.getElementById('capturedRedPieces');
+    const blackPool = document.getElementById('capturedBlackPieces');
+    
+	if (redPool) redPool.innerHTML = '';
+	if (blackPool) blackPool.innerHTML = '';
+
+    // 渲染红方被吃棋子（使用红方字库）
+    capturedRedPieces.forEach(type => {
+        const el = document.createElement('div');
+        el.className = 'captured-mini-piece red';
+		if (type === 'HIDDEN_CAPTURED') {
+		            el.textContent = '?';
+		            el.classList.add('hidden-captured-mini'); // 方便后续写样式美化
+		        } else {
+		            el.textContent = PIECE_SYMBOLS[type] || type;
+		        }
+		if (redPool) redPool.appendChild(el);
+    });
+
+    // 渲染黑方被吃棋子（使用黑方字库，如 卒、士、象、将）
+    capturedBlackPieces.forEach(type => {
+        const el = document.createElement('div');
+        el.className = 'captured-mini-piece black';
+		if (type === 'HIDDEN_CAPTURED') {
+		            el.textContent = '?';
+		            el.classList.add('hidden-captured-mini');
+		        } else {
+		            el.textContent = BLACK_SYMBOLS[type] || type;
+		        }
+		if (blackPool) blackPool.appendChild(el);
+    });
 }
 
 renderEmptyBoard();

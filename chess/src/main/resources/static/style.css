@@ -258,7 +258,8 @@ body {
 
 .board {
     display: grid;
-    grid-template-columns: repeat(9, 60px);
+    grid-template-columns: repeat(9, 1fr) !important;
+    grid-template-rows: repeat(12, 1fr) !important;
     gap: 0;
     background: #deb887;
     padding: 10px;
@@ -479,4 +480,382 @@ body {
     .game-controls {
         flex-wrap: wrap;
     }
+}
+
+/* 1. 抹除河道内部的所有网格线，统一下层木纹色 */
+.river-cell {
+    background: #deb887 !important;
+    border: none !important;
+    cursor: default !important; /* 河道空白处不可点击 */
+}
+
+.board:not(.flip-180) .river-cell[data-river-row="0"] { border-top: 1px solid #8b4513 !important; }   /* 上边界 */
+.board:not(.flip-180) .river-cell[data-river-row="1"] { border-bottom: 1px solid #8b4513 !important; }/* 下边界 */
+.board:not(.flip-180) .river-cell[data-river-col="0"] { border-left: 1px solid #8b4513 !important; }  /* 左边界 */
+.board:not(.flip-180) .river-cell[data-river-col="8"] { border-right: 1px solid #8b4513 !important; } /* 右边界 */
+
+.board.flip-180 .river-cell[data-river-row="0"] { border-bottom: 1px solid #8b4513 !important; } /* 0行原本在上方，翻转后到了下方，所以改加下边框 */
+.board.flip-180 .river-cell[data-river-row="1"] { border-top: 1px solid #8b4513 !important; }    /* 1行同理改加上边框 */
+.board.flip-180 .river-cell[data-river-col="0"] { border-right: 1px solid #8b4513 !important; }  /* 左列变成右列，改加右边框 */
+.board.flip-180 .river-cell[data-river-col="8"] { border-left: 1px solid #8b4513 !important; }   /* 右列变成左列，改加左边框 */
+
+/* 3. 彻底隐藏河道格子继承的坐标文字标签 */
+.river-cell::before {
+    display: none !important;
+}
+
+/* ─────── 楚河汉界上方的黑方九宫格另一半对角线 ─────── */
+.cell[data-coord="d9"] {
+    background: 
+        linear-gradient(45deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+.cell[data-coord="f9"] {
+    background: 
+        linear-gradient(135deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+.cell[data-coord="e8"] {
+    background: 
+        linear-gradient(135deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%),
+        linear-gradient(45deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+.cell[data-coord="d7"] {
+    background: 
+        linear-gradient(135deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+.cell[data-coord="f7"] {
+    background: 
+        linear-gradient(45deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+
+
+/* ─────── 楚河汉界下方的红方九宫格另一半对角线 ─────── */
+.cell[data-coord="d0"] {
+    background: 
+        linear-gradient(135deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+.cell[data-coord="d2"] {
+    background: 
+        linear-gradient(45deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+.cell[data-coord="e1"] {
+    background: 
+        linear-gradient(135deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%),
+        linear-gradient(45deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+.cell[data-coord="f0"] {
+    background: 
+        linear-gradient(45deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+.cell[data-coord="f2"] {
+    background: 
+        linear-gradient(135deg, transparent 48.5%, #8b4513 49%, #8b4513 51%, transparent 51.5%), 
+        #deb887 !important;
+}
+
+.cell.suggested {
+    position: relative !important;
+    cursor: pointer !important;
+}
+
+.cell.suggested::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 严格居中 */
+    width: 18px;                       /* 圆点大小 */
+    height: 18px;
+    background-color: rgba(255, 255, 255, 0.5); /* 提高白点的清晰度 */
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.6), 
+                0 2px 4px rgba(0, 0, 0, 0.15);
+    z-index: 999 !important;                      /* 关键：确保超越任何棋子的层级，浮在最表面 */
+    pointer-events: none;              /* 点击穿透 */
+    display: block !important;                    /* 强制显示 */
+    
+    animation: breathPulse 2.0s infinite ease-in-out;
+}
+
+.cell.suggested:hover::after {
+    width: 22px !important;
+    height: 22px !important;
+    animation-play-state: paused; /* 悬停时暂停呼吸 */
+    transform: translate(-50%, -50%) scale(1.3) !important; 
+    background-color: rgba(255, 255, 255, 0.85) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.board.flip-180 .cell.suggested::after {
+    /* 保持原位居中 */
+   animation: breathPulseFlip 2.0s infinite ease-in-out;
+   transform: translate(-50%, -50%) rotate(180deg) !important;
+}
+
+.board.flip-180 .cell.suggested:hover::after {
+    animation-play-state: paused;
+    transform: translate(-50%, -50%) rotate(180deg) scale(1.3) !important;
+}
+
+@keyframes breathPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.85);
+        background-color: rgba(255, 255, 255, 0.35);
+        box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.15); /* 微微放大 */
+        background-color: rgba(255, 255, 255, 0.65); /* 微微变亮 */
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.8); /* 发光晕开 */
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0.85);
+        background-color: rgba(255, 255, 255, 0.35);
+        box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+    }
+}
+
+@keyframes breathPulseFlip {
+    0% {
+        transform: translate(-50%, -50%) rotate(180deg) scale(0.85);
+        background-color: rgba(255, 255, 255, 0.35);
+        box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+    }
+    50% {
+        transform: translate(-50%, -50%) rotate(180deg) scale(1.15);
+        backgrouSnd-color: rgba(255, 255, 255, 0.65);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(180deg) scale(0.85);
+        background-color: rgba(255, 255, 255, 0.35);
+        box-shadow: 0 0 4px rgba(255, 255, 255, 0.4);
+    }
+}
+
+.captured-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 4px 0;
+    width: 100%;
+}
+
+.captured-line {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.captured-label {
+    font-size: 13px;
+    font-weight: bold;
+    white-space: nowrap;
+    width: 65px;
+}
+
+.captured-label.red-label { color: #c62828; }
+.captured-label.black-label { color: #212121; }
+
+.captured-pool {
+    display: flex;
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 32px;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 4px 8px;
+    border-radius: 6px;
+    flex: 1;
+}
+
+/* 微缩版被吃棋子 */
+.captured-mini-piece {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.captured-mini-piece.red {
+    background: linear-gradient(145deg, #ffeb3b, #fdd835);
+    color: #c62828;
+    border: 1px solid #c62828;
+}
+
+.captured-mini-piece.black {
+    background: linear-gradient(145deg, #424242, #212121);
+    color: #fff;
+    border: 1px solid #000;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: #f7f2e8; /* 配合棋盘古风背景 */
+    border: 4px solid #8b4513;
+    border-radius: 12px;
+    padding: 30px;
+    width: 360px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-icon {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+#modalTitle {
+    font-size: 24px;
+    color: #8b4513;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+#modalBody {
+    font-size: 16px;
+    color: #4a4a4a;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 15px;
+}
+
+/* 按钮统一规范微调 */
+.modal-buttons .btn {
+    padding: 10px 24px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    font-weight: bold;
+    flex: 1;
+    transition: background 0.2s;
+}
+
+.modal-buttons .btn.primary {
+    background: #d32f2f;
+    color: white;
+}
+.modal-buttons .btn.primary:hover {
+    background: #b71c1c;
+}
+
+.modal-buttons .btn.secondary {
+    background: #757575;
+    color: white;
+}
+.modal-buttons .btn.secondary:hover {
+    background: #616161;
+}
+
+.board {
+    position: relative !important;
+}
+
+.board::before{
+	content: "楚河";
+    position: absolute;
+    top: 50%;
+    left: 55px;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "华文行楷", "STXingkai", "KaiTi", "楷体", serif;
+    font-size: 42px;
+    font-weight: bold;
+    color: rgba(139, 69, 19, 1);
+    
+    transform: translate(0, -50%) rotate(-90deg);
+    transform-origin: center center;
+    pointer-events: none;
+    z-index: 10;
+    transition: color 0.3s ease;
+}
+
+.board::after{
+	content: "汉界";
+    position: absolute;
+    top: 50%;
+    right: 55px;             /* 精准靠右定位 */
+    width: 120px;
+    height: 120px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "华文行楷", "STXingkai", "KaiTi", "楷体", serif;
+    font-size: 42px;
+    font-weight: bold;
+    color: rgba(139, 69, 19, 1);
+    
+    transform: translate(0, -50%) rotate(90deg);
+    transform-origin: center center;
+    
+    pointer-events: none;
+    z-index: 10;
+    transition: color 0.3s ease;
+}
+
+.board.flip-180::before {
+    content: "楚河" !important;           /* 翻转后原本楚河的位置显示正向的汉界 */
+    transition: none !important;
+    transform: translate(0, -50%) rotate(-90deg) !important; /* 保持角度正向可读 */
+}
+
+.board.flip-180::after {
+    content: "汉界" !important;           /* 翻转后原本汉界的位置显示正向的楚河 */
+    transition: none !important;
+    transform: translate(0, -50%) rotate(90deg) !important; 
 }
