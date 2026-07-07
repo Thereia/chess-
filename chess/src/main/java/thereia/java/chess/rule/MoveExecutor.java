@@ -33,9 +33,7 @@ public final class MoveExecutor {
         }
 
         Board nextBoard = board.move(from, to, pieceAfterMove);
-        // 这么早就统计不吃子了？
         int nextNoCapturePlyCount = capturedPiece == null ? state.getNoCapturePlyCount() + 1 : 0;
-        // 赫赫，回合数
         int nextMoveNumber = state.getMoveNumber() + 1;
 
         GameState nextState = new GameState(nextBoard, moverColor.opponent(), state.getStatus(), state.getRedPool(),

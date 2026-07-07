@@ -9,3 +9,24 @@ worktrees/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Maven build output
+target/
+**/target/
+
+# Test scripts
+test_*.py
+integration_test.py
+
+# User data files
+data/users.json
+chess/data/users.json
+
+# Log files
+*.log
+debug.log

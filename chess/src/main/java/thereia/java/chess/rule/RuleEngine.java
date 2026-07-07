@@ -14,7 +14,6 @@ public final class RuleEngine {
         Position from = move.getFrom();
         Position to = move.getTo();
 
-        // 该死的防御性编程
         if (from.equals(to)) {
             return MoveValidationResult.illegal("source and destination must be different");
         }
@@ -44,7 +43,6 @@ public final class RuleEngine {
         return MoveValidationResult.ok();
     }
 
-    // 优雅的暴力枚举
     private boolean canMove(Board board, Position from, Position to, Piece piece, boolean capture) {
         return switch (piece.getMovementType()) {
             case KING -> canKingMove(from, to, piece.getColor());

@@ -1,6 +1,7 @@
 package thereia.java.chess.game;
 
 import lombok.Getter;
+import thereia.java.chess.board.Position;
 import thereia.java.chess.move.Move;
 import thereia.java.chess.move.MoveRecord;
 import thereia.java.chess.move.MoveValidationResult;
@@ -48,7 +49,6 @@ public final class GameRoom {
 
     public RoomMoveResult handleMove(String playerId, Move move, Instant now) {
         Player player = playerFor(playerId);
-        // 该死的防御性编程
         if (player == null) {
             return invalidMove(MoveValidationResult.illegal("player is not in room"), move);
         }
@@ -211,7 +211,7 @@ public final class GameRoom {
         List<GameStartMessage.InitialPieceMessage> pieces = new ArrayList<>();
         for (int row = 0; row <= 9; row++) {
             for (int col = 0; col <= 8; col++) {
-                thereia.java.chess.board.Position position = thereia.java.chess.board.Position.fromArrayIndex(row, col);
+                Position position = Position.fromArrayIndex(row, col);
                 Piece piece = state.getBoard().pieceAt(position).orElse(null);
                 if (piece == null) {
                     continue;

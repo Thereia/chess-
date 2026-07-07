@@ -29,6 +29,9 @@ import thereia.java.chess.protocol.PongMessage;
 import thereia.java.chess.protocol.RoomInfoMessage;
 import thereia.java.chess.protocol.TimeoutMessage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -40,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public final class GameWebSocketHandler extends TextWebSocketHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GameWebSocketHandler.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SessionRegistry sessionRegistry;
@@ -73,8 +78,11 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         try {
+            log.debug("Received message: {}", message.getPayload());
             JsonNode payload = objectMapper.readTree(message.getPayload());
             MessageEnvelope envelope = objectMapper.treeToValue(payload, MessageEnvelope.class);
+            log.debug("Message type: {}", envelope.getMessageType());
+
             if (MessageType.register.name().equals(envelope.getMessageType())) {
                 handleRegister(session, objectMapper.treeToValue(payload, LoginRequest.class));
                 return;
@@ -109,15 +117,19 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
             }
             send(session, ErrorMessage.of(4002, "unknown messageType"));
         } catch (IOException exception) {
+            log.error("IO error handling message: {}", exception.getMessage(), exception);
             try {
                 send(session, ErrorMessage.of(4001, "json format error"));
             } catch (IOException ioException) {
+                log.error("Failed to send error message", ioException);
                 throw new IllegalStateException("failed to send error message", ioException);
             }
         } catch (RuntimeException exception) {
+            log.error("Runtime error handling message: {}", exception.getMessage(), exception);
             try {
                 send(session, ErrorMessage.of(5000, exception.getMessage()));
             } catch (IOException ioException) {
+                log.error("Failed to send error message", ioException);
                 throw new IllegalStateException("failed to send error message", ioException);
             }
         }
@@ -146,7 +158,8 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
                 GameOverMessage gameOver = gameRoom.resign(userId);
                 send(opponentSession(gameRoom, userId), gameOver);
             }
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            log.warn("Failed to handle resignation on disconnect for user {}: {}", userId, exception.getMessage());
         } finally {
             finishRoom(gameRoom);
             sessionRegistry.remove(session.getId());
@@ -334,7 +347,9 @@ public final class GameWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void send(WebSocketSession session, Object payload) throws IOException {
-        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(payload)));
+        String message = objectMapper.writeValueAsString(payload);
+        log.debug("Sending response: {}", message);
+        session.sendMessage(new TextMessage(message));
     }
 
     private void handlePing(WebSocketSession session) throws IOException {

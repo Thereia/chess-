@@ -42,6 +42,6 @@ class WebSocketConfigTest {
         config.registerWebSocketHandlers(registry);
 
         verify(registry).addHandler(org.mockito.ArgumentMatchers.same(handler), pathsCaptor.capture());
-        assertThat(pathsCaptor.getValue()).containsExactly("/");
+        assertThat(pathsCaptor.getValue()).containsExactly("/ws");
     }
 }
