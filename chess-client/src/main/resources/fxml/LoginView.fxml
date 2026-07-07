@@ -8,7 +8,7 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="thereia.java.chess.client.LoginController"
-            prefWidth="400" prefHeight="450">
+            prefWidth="420" prefHeight="620">
     
     <fx:define>
         <ToggleGroup fx:id="authToggleGroup"/>

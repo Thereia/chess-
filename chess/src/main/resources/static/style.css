@@ -360,14 +360,22 @@ body {
     border: 2px solid #000;
 }
 
-.piece.hidden {
-    background: linear-gradient(145deg, #795548, #5d4037);
-    color: #d7ccc8;
-    border: 2px solid #3e2723;
+.piece.hidden-piece.red {
+    background: linear-gradient(145deg, #ffb6c1, #ff69b4);
+    color: #c62828;
+    border: 2px solid #c62828;
     font-size: 20px;
 }
 
-.piece.hidden::after {
+.piece.hidden-piece.black {
+    background: linear-gradient(145deg, #616161, #424242);
+    color: #ffffff;
+    border: 2px solid #212121;
+    font-size: 20px;
+}
+
+.piece.hidden-piece.red::after,
+.piece.hidden-piece.black::after {
     content: '?';
 }
 
@@ -705,6 +713,18 @@ body {
     background: linear-gradient(145deg, #424242, #212121);
     color: #fff;
     border: 1px solid #000;
+}
+
+.captured-mini-piece.red.hidden-captured-mini {
+    background: linear-gradient(145deg, #ffb6c1, #ff69b4);
+    color: #c62828;
+    border: 1px solid #c62828;
+}
+
+.captured-mini-piece.black.hidden-captured-mini {
+    background: linear-gradient(145deg, #616161, #424242);
+    color: #ffffff;
+    border: 1px solid #212121;
 }
 
 .modal-overlay {

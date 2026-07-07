@@ -16,7 +16,7 @@ public class ChessClientApp extends Application {
         Parent root = loader.load();
 
         primaryStage.setTitle("揭棋对弈");
-        primaryStage.setScene(new Scene(root, 400, 500));
+        primaryStage.setScene(new Scene(root, 420, 620));
         primaryStage.setResizable(false);
         primaryStage.show();
     }

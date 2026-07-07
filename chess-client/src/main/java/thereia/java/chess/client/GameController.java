@@ -99,6 +99,15 @@ public class GameController {
     @FXML
     private VBox topBar;
 
+    @FXML
+    private HBox topColLabels;
+
+    @FXML
+    private HBox bottomColLabels;
+
+    @FXML
+    private VBox leftRowLabels;
+
     private Label redPlayerLabel;
     private Label blackPlayerLabel;
 
@@ -503,6 +512,19 @@ public class GameController {
                 boardGrid.add(cell, col, renderRow);
             }
         }
+        updateCoordinateLabels();
+    }
+
+    private void updateCoordinateLabels() {
+        boolean isRed = myColor != null && myColor.equals("red");
+        
+        if (leftRowLabels != null) {
+            for (int i = 0; i < leftRowLabels.getChildren().size(); i++) {
+                Label label = (Label) leftRowLabels.getChildren().get(i);
+                int rowNum = isRed ? 9 - i : i;
+                label.setText(String.valueOf(rowNum));
+            }
+        }
     }
 
     private void drawBoardOnCanvas(GraphicsContext gc) {
@@ -654,9 +676,15 @@ public class GameController {
                 pieceCircle.setStrokeWidth(3);
             }
         } else {
-            pieceCircle.setFill(Color.rgb(101, 67, 33));
-            pieceCircle.setStroke(Color.rgb(45, 27, 14));
-            pieceCircle.setStrokeWidth(2);
+            if (piece.color.equals("red")) {
+                pieceCircle.setFill(Color.rgb(255, 182, 193));
+                pieceCircle.setStroke(Color.rgb(180, 0, 0));
+                pieceCircle.setStrokeWidth(4);
+            } else {
+                pieceCircle.setFill(Color.rgb(80, 80, 80));
+                pieceCircle.setStroke(Color.BLACK);
+                pieceCircle.setStrokeWidth(4);
+            }
         }
 
         pieceCircle.setEffect(new javafx.scene.effect.DropShadow(4, 2, 2, Color.rgb(0, 0, 0, 0.4)));
@@ -676,8 +704,10 @@ public class GameController {
             pieceLabel.setTextFill(Color.rgb(180, 0, 0));
         } else if (piece.color.equals("black") && piece.visible) {
             pieceLabel.setTextFill(Color.BLACK);
+        } else if (piece.color.equals("red") && !piece.visible) {
+            pieceLabel.setTextFill(Color.rgb(180, 0, 0));
         } else {
-            pieceLabel.setTextFill(Color.rgb(220, 200, 180));
+            pieceLabel.setTextFill(Color.WHITE);
         }
 
         piecePane.getChildren().add(pieceLabel);
@@ -969,19 +999,25 @@ public class GameController {
         label.setFont(Font.font("KaiTi", FontWeight.BOLD, 14));
 
         if (piece.color.equals("red")) {
-            label.setTextFill(Color.rgb(180, 0, 0));
-            label.setStyle("-fx-background-color: linear-gradient(to bottom, #fff8dc, #f5deb3); " +
-                    "-fx-background-radius: 50%; -fx-border-color: #8b4513; -fx-border-width: 1px;");
+            if (isVisible) {
+                label.setTextFill(Color.rgb(180, 0, 0));
+                label.setStyle("-fx-background-color: linear-gradient(to bottom, #fff8dc, #f5deb3); " +
+                        "-fx-background-radius: 50%; -fx-border-color: #8b4513; -fx-border-width: 1px;");
+            } else {
+                label.setTextFill(Color.rgb(180, 0, 0));
+                label.setStyle("-fx-background-color: linear-gradient(to bottom, #ffb6c1, #ff69b4); " +
+                        "-fx-background-radius: 50%; -fx-border-color: #c62828; -fx-border-width: 2px;");
+            }
         } else {
-            label.setTextFill(Color.BLACK);
-            label.setStyle("-fx-background-color: linear-gradient(to bottom, #ffffff, #dcdcdc); " +
-                    "-fx-background-radius: 50%; -fx-border-color: #333; -fx-border-width: 1px;");
-        }
-
-        if (!isVisible) {
-            label.setStyle("-fx-background-color: linear-gradient(to bottom, #654321, #3e2723); " +
-                    "-fx-background-radius: 50%; -fx-border-color: #2d1b0e; -fx-border-width: 1px;");
-            label.setTextFill(Color.rgb(200, 180, 160));
+            if (isVisible) {
+                label.setTextFill(Color.BLACK);
+                label.setStyle("-fx-background-color: linear-gradient(to bottom, #ffffff, #dcdcdc); " +
+                        "-fx-background-radius: 50%; -fx-border-color: #333; -fx-border-width: 1px;");
+            } else {
+                label.setTextFill(Color.WHITE);
+                label.setStyle("-fx-background-color: linear-gradient(to bottom, #616161, #424242); " +
+                        "-fx-background-radius: 50%; -fx-border-color: #212121; -fx-border-width: 2px;");
+            }
         }
 
         if (piece.color.equals("red")) {

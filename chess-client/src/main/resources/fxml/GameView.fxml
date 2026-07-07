@@ -42,7 +42,7 @@
             </padding>
             
             <VBox spacing="10">
-                <HBox alignment="CENTER">
+                <HBox fx:id="topColLabels" alignment="CENTER">
                     <Label text="a" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-width: 60px; -fx-text-alignment: center;"/>
                     <Label text="b" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-width: 60px; -fx-text-alignment: center;"/>
                     <Label text="c" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-width: 60px; -fx-text-alignment: center;"/>
@@ -55,7 +55,7 @@
                 </HBox>
                 
                 <HBox>
-                    <VBox spacing="0">
+                    <VBox fx:id="leftRowLabels" spacing="0">
                         <Label text="9" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-height: 60px; -fx-alignment: CENTER;"/>
                         <Label text="8" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-height: 60px; -fx-alignment: CENTER;"/>
                         <Label text="7" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-height: 60px; -fx-alignment: CENTER;"/>
@@ -70,7 +70,7 @@
                     <GridPane fx:id="boardGrid" hgap="0" vgap="0"/>
                 </HBox>
                 
-                <HBox alignment="CENTER">
+                <HBox fx:id="bottomColLabels" alignment="CENTER">
                     <Label text="a" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-width: 60px; -fx-text-alignment: center;"/>
                     <Label text="b" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-width: 60px; -fx-text-alignment: center;"/>
                     <Label text="c" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-min-width: 60px; -fx-text-alignment: center;"/>
